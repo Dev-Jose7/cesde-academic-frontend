@@ -20,6 +20,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
+      "/analytics": {
+        target: "https://cesde-academic-app-analytics.up.railway.app",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/analytics/, ""),
+      },
     },
   },
 });

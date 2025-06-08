@@ -64,5 +64,9 @@
   background-color: #d41e7c !important;
 }
 
-
+.truncate-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 

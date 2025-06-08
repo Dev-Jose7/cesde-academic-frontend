@@ -17,43 +17,32 @@ export default function BasicTableOne() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const usuarioLocal = localStorage.getItem("usuario");
-    const token = localStorage.getItem("accessToken");
+  const usuarioLocal = localStorage.getItem("usuario");
+  if (usuarioLocal) {
+    // try {
+    //   const user = JSON.parse(usuarioLocal);
+    //   setUsuario(user);
 
-    if (usuarioLocal && token) {
-      try {
-        const user = JSON.parse(usuarioLocal);
-        setUsuario(user);
+    //   fetch("api/calificacion/lista")
+    //     .then(async (res) => {
+    //       const text = await res.text();
+    //       console.log("Respuesta cruda:", text);
+    //       return JSON.parse(text); 
+    //     })
+    //     .then((data) => {
+    //       setCalificaciones(data);
+    //       setLoading(false);
+    //     })
+    //     .catch((err) => {
+    //       console.error("Error al obtener calificaciones:", err);
+    //       setLoading(false);
+    //     });
+    // } catch (err) {
+    //   console.error("Error al parsear usuario:", err);
+    // }
+  }
+}, []); 
 
-        fetch("api/calificacion/lista", {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        })
-          .then(async (res) => {
-            if (!res.ok) {
-              throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            return res.json();
-          })
-          .then((data) => {
-            setCalificaciones(data);
-            setLoading(false);
-          })
-          .catch((err) => {
-            console.error("Error al obtener calificaciones:", err);
-            setLoading(false);
-          });
-      } catch (err) {
-        console.error("Error al parsear usuario:", err);
-        setLoading(false);
-      }
-    } else {
-      console.warn("No hay usuario o token almacenado");
-      setLoading(false);
-    }
-  }, []);
 
   return (
     <div className="container">

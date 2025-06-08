@@ -1,79 +1,103 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { fetchAuth } from "../../utils/fetchAuth";
 
-const datosQuemados = [
-  {
-    id: 1,
-    escuela: "Nuevas Tecnologías",
-    nombre: "Técnico Laboral como Asistente en Desarrollo de Software",
-    creado: "2025-05-15T16:11:12.227179",
-    actualizado: "2025-05-15T16:11:12.227153",
-  },
-  {
-    id: 2,
-    escuela: "Industrias Creativas",
-    nombre: "Técnico Laboral como Asistente de Animación 3D/VFX",
-    creado: "2025-05-15T17:18:04.838258",
-    actualizado: "2025-05-15T17:18:04.838191",
-  },
-];
+interface Programa {
+  id: number;
+  escuela: string;
+  nombre: string;
+  creado: string;
+  actualizado: string;
+}
 
-export default function ManagementPrograms() {
-  const [programas, setProgramas] = useState(datosQuemados);
+const ManagementPrograms: React.FC = () => {
+  const [programas, setProgramas] = useState<Programa[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetchProgramas();
+    cargarProgramas();
   }, []);
 
-  const fetchProgramas = async () => {
+  const cargarProgramas = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "https://cesde-academic-app-development.up.railway.app/programa/lista"
-      );
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        setProgramas(response.data);
-      } else {
-        console.warn(
-          "API respondió con datos vacíos o no es arreglo, manteniendo datos quemados."
-        );
-      }
+      const response = await fetchAuth("/api/programa/lista");
+      const data: Programa[] = await response.json();
+      setProgramas(data);
     } catch (error) {
       console.error("Error al cargar programas:", error);
-      // Se mantienen datos quemados si hay error
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCrear = () => {
+  const crearPrograma = async () => {
     const escuela = prompt("Ingrese el nombre de la escuela:");
     if (!escuela) return alert("La escuela es requerida.");
 
     const nombre = prompt("Ingrese el nombre del programa:");
     if (!nombre) return alert("El nombre del programa es requerido.");
 
-    const nuevoId = programas.length > 0 ? Math.max(...programas.map((p) => p.id)) + 1 : 1;
+    try {
+      const nuevoPrograma: Partial<Programa> = { escuela, nombre };
+      const response = await fetchAuth("/api/programa/crear", {
+        method: "POST",
+        body: JSON.stringify(nuevoPrograma),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    const nuevoPrograma = {
-      id: nuevoId,
-      escuela,
-      nombre,
-      creado: new Date().toISOString(),
-      actualizado: new Date().toISOString(),
-    };
-
-    setProgramas((prev) => [nuevoPrograma, ...prev]);
+      if (response.ok) {
+        await cargarProgramas();
+      } else {
+        console.error("Error al crear programa");
+      }
+    } catch (err) {
+      console.error("Error al enviar datos:", err);
+    }
   };
 
-  // FILTRADO SOLO POR ESCUELA Y NOMBRE, NO POR ID
+  const editarPrograma = async (programa: Programa) => {
+    const nuevoNombre = prompt("Editar nombre del programa:", programa.nombre);
+    if (!nuevoNombre) return;
+
+    try {
+      const actualizado = { ...programa, nombre: nuevoNombre };
+      await fetchAuth(`/api/programa/editar/${programa.id}`, {
+        method: "PUT",
+        body: JSON.stringify(actualizado),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      await cargarProgramas();
+    } catch (error) {
+      console.error("Error al editar programa:", error);
+    }
+  };
+
+  const eliminarPrograma = async (id: number) => {
+    if (!confirm("¿Estás seguro de eliminar este programa?")) return;
+
+    try {
+      await fetchAuth(`/api/programa/remover/${id}`, {
+        method: "DELETE",
+      });
+
+      setProgramas((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Error al eliminar programa:", error);
+    }
+  };
+
   const programasFiltrados = programas.filter((p) => {
-    const escuela = p?.escuela?.toLowerCase() ?? "";
-    const nombre = p?.nombre?.toLowerCase() ?? "";
     const term = searchTerm.toLowerCase();
-    return escuela.includes(term) || nombre.includes(term);
+    return (
+      p.escuela.toLowerCase().includes(term) ||
+      p.nombre.toLowerCase().includes(term)
+    );
   });
 
   return (
@@ -81,9 +105,8 @@ export default function ManagementPrograms() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-800">Programas Directivos</h2>
         <button
-          onClick={handleCrear}
-          className="px-5 py-2 rounded-md text-white text-sm font-medium transition-colors"
-          style={{ backgroundColor: "#ed2e91" }}
+          onClick={crearPrograma}
+          className="px-5 py-2 rounded-md text-white text-sm font-medium transition-colors bg-[#ed2e91] hover:bg-[#e01980]"
           type="button"
         >
           Crear Programa
@@ -118,10 +141,22 @@ export default function ManagementPrograms() {
               <tr key={programa.id} className="hover:bg-gray-50 transition-colors">
                 <td className="py-3 px-4 font-medium">{programa.escuela}</td>
                 <td className="py-3 px-4">{programa.nombre}</td>
-                <td className="py-3 px-4">{new Date(programa.creado).toLocaleDateString()}</td>
-                <td className="py-3 px-4">{new Date(programa.actualizado).toLocaleDateString()}</td>
+                <td className="py-3 px-4">
+                  {new Date(programa.creado).toLocaleDateString()}
+                </td>
+                <td className="py-3 px-4">
+                  {new Date(programa.actualizado).toLocaleDateString()}
+                </td>
                 <td className="py-3 px-4 space-x-3">
                   <button
+                    onClick={() => editarPrograma(programa)}
+                    className="text-blue-600 hover:underline text-sm"
+                    type="button"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => eliminarPrograma(programa.id)}
                     className="text-red-600 hover:underline text-sm"
                     type="button"
                   >
@@ -135,7 +170,6 @@ export default function ManagementPrograms() {
       )}
     </div>
   );
-}
+};
 
-
-
+export default ManagementPrograms;

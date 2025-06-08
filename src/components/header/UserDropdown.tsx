@@ -38,9 +38,13 @@ export default function UserDropdown() {
   }
 
   async function handleLogout() {
-
+    const refreshToken = localStorage.getItem("refreshToken") || null;
+  
     try {
-      await fetchAuth("/api/auth/logout", {method: "POST"});
+      await fetchAuth("/api/auth/logout", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken: refreshToken }),
+      });
     } catch (error) {
       console.error("Error cerrando sesión:", error);
     } finally {
@@ -51,7 +55,7 @@ export default function UserDropdown() {
       setUsuario(null);
       navigate("/signin");
     }
-  }
+  }  
 
   // Sacar la inicial del nombre (primer caracter)
   const initial = user?.nombre ? user.nombre.charAt(0).toUpperCase() : "U";

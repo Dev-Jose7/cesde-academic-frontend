@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from "react";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import Alert from "../../components/ui/alert/Alert";
-import PageMeta from "../../components/common/PageMeta";
-import axios from "axios";
-
-interface Usuario {
-  id: number;
-  tipo: "DOCENTE" | "ESTUDIANTE" | string;
-  nombre: string;
-}
+import { fetchAuth } from "../../utils/fetchAuth";
+import { Usuario } from "../../context/UserContext";
+// import PageMeta from "../../components/common/PageMeta";
+// import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 interface Clase {
   docente: string;
@@ -22,54 +17,55 @@ interface Asistencia {
   clase: Clase;
   estudiante: string;
   fecha: string;
-  estado: "ASISTIO" | "INASISTENCIA" | string;
+  estado: "ASISTIO" | "INASISTENCIA" | "JUSTIFICADO" | string;
 }
 
-export default function Alerts() {
+const AsistenciasPage: React.FC = () => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const usuarioString = localStorage.getItem("usuario");
-    if (usuarioString) {
-      const user: Usuario = JSON.parse(usuarioString);
+    const fetchAsistencias = async () => {
+      const usuarioStorage = localStorage.getItem("usuario");
+
+      if (!usuarioStorage) return setLoading(false);
+
+      const user: Usuario = JSON.parse(usuarioStorage);
       setUsuario(user);
 
-      if (user.tipo === "DOCENTE") {
-        axios
-          .get("/api/asistencia/lista", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken") || ""}`,
-            },
-          })
-          .then((res) => {
-            const asistenciasDocente = res.data.filter(
-              (a: Asistencia) =>
-                a?.clase?.docente?.toLowerCase() === user.nombre.toLowerCase()
+      try {
+        let asistenciasData: Asistencia[] = [];
+
+        switch (user.tipo) {
+          case "DOCENTE":
+            const asistenciaListaResponse = await fetchAuth("/api/asistencia/lista");
+            const asistenciaListaData: Asistencia[] = await asistenciaListaResponse.json();
+            
+            asistenciasData = asistenciaListaData.filter(
+              (a) => a?.clase?.docente?.toLowerCase() === user.nombre.toLowerCase()
             );
-            setAsistencias(asistenciasDocente);
-          })
-          .catch((err) => console.error("Error al obtener asistencias:", err))
-          .finally(() => setLoading(false));
-      } else if (user.tipo === "ESTUDIANTE") {
-        axios
-          .get(`/api/asistencia/estudiante/${user.id}`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken") || ""}`,
-            },
-          })
-          .then((res) => {
-            setAsistencias(res.data);
-          })
-          .catch((err) => console.error("Error al obtener asistencias:", err))
-          .finally(() => setLoading(false));
-      } else {
+            break;
+
+          case "ESTUDIANTE":
+            const responseEstudiante = await fetchAuth(`/api/asistencia/estudiante/${user.id}`);
+            asistenciasData = await responseEstudiante.json();
+            break;
+
+          default:
+            asistenciasData = [];
+            break;
+        }
+
+        setAsistencias(asistenciasData);
+      } catch (error) {
+        console.error("Error al obtener asistencias:", error);
+      } finally {
         setLoading(false);
       }
-    } else {
-      setLoading(false);
-    }
+    };
+
+    fetchAsistencias();
   }, []);
 
   const asistenciasAgrupadas = () => {
@@ -83,10 +79,8 @@ export default function Alerts() {
 
   const eliminarAsistencia = async (id: number) => {
     try {
-      await axios.delete(`/api/asistencia/remover/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken") || ""}`,
-        },
+      await fetchAuth(`/api/asistencia/remover/${id}`, {
+        method: "DELETE",
       });
       setAsistencias((prev) => prev.filter((a) => a.id !== id));
     } catch (err) {
@@ -97,10 +91,9 @@ export default function Alerts() {
   const agregarAsistencia = async (asistencia: Asistencia) => {
     try {
       const actualizada = { ...asistencia, estado: "ASISTIO" };
-      await axios.put(`/api/asistencia/editar/${asistencia.id}`, actualizada, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken") || ""}`,
-        },
+      await fetchAuth(`/api/asistencia/editar/${asistencia.id}`, {
+        method: "PUT",
+        body: JSON.stringify(actualizada),
       });
       setAsistencias((prev) =>
         prev.map((a) => (a.id === asistencia.id ? actualizada : a))
@@ -112,8 +105,8 @@ export default function Alerts() {
 
   return (
     <>
-      <PageMeta title="Asistencias" />
-      <PageBreadcrumb title="Asistencias" />
+      {/* <PageMeta title="Asistencias" />
+      <PageBreadcrumb title="Asistencias" /> */}
 
       {loading && (
         <p className="text-center text-gray-600 mt-8 font-medium">Buscando asistencias...</p>
@@ -155,19 +148,7 @@ export default function Alerts() {
                           title="Marcar como asistió"
                           aria-label="Editar asistencia"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            stroke="white"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            viewBox="0 0 24 24"
-                            className="w-5 h-5"
-                          >
-                            <path d="M12 20h9" />
-                            <path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z" />
-                          </svg>
+                          ✔
                         </button>
                       ) : (
                         <button
@@ -177,22 +158,7 @@ export default function Alerts() {
                           title="Eliminar asistencia"
                           aria-label="Eliminar asistencia"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            stroke="white"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            viewBox="0 0 24 24"
-                            className="w-5 h-5"
-                          >
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                            <path d="M10 11v6" />
-                            <path d="M14 11v6" />
-                            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
-                          </svg>
+                          ✖
                         </button>
                       )}
                     </span>
@@ -224,5 +190,6 @@ export default function Alerts() {
       )}
     </>
   );
-}
+};
 
+export default AsistenciasPage;
