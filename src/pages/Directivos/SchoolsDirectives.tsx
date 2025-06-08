@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { GiChefToque } from "react-icons/gi";
 
+// Interfaz de tipo para las categorías
 interface Categoria {
   id: number;
   nombre: string;
@@ -16,7 +17,7 @@ interface Categoria {
   actualizado: string;
 }
 
-// Datos por defecto
+// Datos de respaldo (fallback)
 const datosQuemados: Categoria[] = [
   { id: 1, nombre: "Nuevas Tecnologías", creado: "2025-05-15T06:37:58.589164", actualizado: "2025-05-15T06:37:58.589088" },
   { id: 2, nombre: "Industrias Creativas", creado: "2025-05-15T06:39:00.446127", actualizado: "2025-05-15T06:39:00.446099" },
@@ -26,6 +27,7 @@ const datosQuemados: Categoria[] = [
   { id: 6, nombre: "Agro", creado: "2025-05-15T06:39:52.289414", actualizado: "2025-05-15T06:39:52.289388" },
 ];
 
+// Íconos por categoría
 const Iconos: Record<string, React.ReactNode> = {
   "Nuevas Tecnologías": <FaLaptop size={20} color="white" />,
   "Industrias Creativas": <FaPaintBrush size={20} color="white" />,
@@ -36,19 +38,20 @@ const Iconos: Record<string, React.ReactNode> = {
 };
 
 export default function CategoriesPanel() {
-  const [categorias, setCategorias] = useState<Categoria[]>(datosQuemados);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchCategorias = async () => {
       setLoading(true);
       try {
-        const response = await axios.get<Categoria[]>("https://tu-api-aqui/categorias");
+        const response = await axios.get<Categoria[]>("/api/categoria/lista");
         if (Array.isArray(response.data)) {
           setCategorias(response.data);
         }
       } catch (error) {
-        console.warn("Error al obtener categorías, se mantienen los datos quemados.");
+        console.warn("Error al obtener categorías, se usan datos por defecto.");
+        setCategorias(datosQuemados);
       } finally {
         setLoading(false);
       }
@@ -68,6 +71,8 @@ export default function CategoriesPanel() {
   const handleEliminar = (id: number) => {
     if (confirm("¿Estás seguro de eliminar esta categoría?")) {
       setCategorias(prev => prev.filter(cat => cat.id !== id));
+      // Aquí podrías agregar DELETE a la API si ya lo tienes
+      // await axios.delete(`/api/categoria/remover/${id}`);
     }
   };
 

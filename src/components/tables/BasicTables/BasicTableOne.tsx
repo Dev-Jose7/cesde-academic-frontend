@@ -46,9 +46,7 @@ export default function BasicTableOne() {
 
   return (
     <div className="container">
-      <h2 className="title">
-        Calificaciones Académicas
-      </h2>
+      <h2 className="title">Calificaciones Académicas</h2>
 
       {loading ? (
         <div className="spinner"></div>

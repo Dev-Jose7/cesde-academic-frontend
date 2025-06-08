@@ -5,6 +5,7 @@ import { useUser } from "./context/UserContext";
 import Home from "./pages/Dashboard/Home";
 import UserProfiles from "./pages/UserProfiles";
 import Calendar from "./pages/Calendar";
+import ChartsDashboard from "./pages/Charts/ChartsDashboard";
 import Blank from "./pages/Blank";
 import FormElements from "./pages/Forms/FormElements";
 import BasicTables from "./pages/Tables/BasicTables";
@@ -39,6 +40,7 @@ export default function DashboardRoutes() {
           <Route path="modulos" element={<Videos />} />
           <Route path="horarios" element={<Calendar />} />
           <Route path="anuncios" element={<Avatars />} />
+          <Route path="estadisticas" element={<ChartsDashboard />} />
         </>
       )}
 
@@ -48,8 +50,10 @@ export default function DashboardRoutes() {
           <Route path="clases" element={<Calendar />} />
           <Route path="actividades" element={<FormElements />} />
           <Route path="calificaciones" element={<BasicTables />} />
+          <Route path="asistencias" element={<Alerts />} />
           <Route path="anuncios" element={<Avatars />} />
           <Route path="reportes" element={<LineChart />} />
+          <Route path="estadisticas" element={<ChartsDashboard />} />
         </>
       )}
 
@@ -62,6 +66,7 @@ export default function DashboardRoutes() {
           <Route path="clase" element={<FormElements />} />
           <Route path="anuncios" element={<Avatars />} />
           <Route path="reportes" element={<BarChart />} />
+          <Route path="estadisticas" element={<ChartsDashboard />} />
         </>
       )}
 
@@ -71,9 +76,9 @@ export default function DashboardRoutes() {
           <Route path="escuelas" element={<SchoolsDirectives />} />
           <Route path="programas" element={<ManagementPrograms />} />
           <Route path="modulos" element={<Images />} />
-          <Route path="estadisticas" element={<LineChart />} />
           <Route path="anuncios" element={<Avatars />} />
           <Route path="reportes" element={<BarChart />} />
+          <Route path="estadisticas" element={<ChartsDashboard />} />
         </>
       )}
     </Routes>

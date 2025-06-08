@@ -32,6 +32,7 @@ export async function fetchAuth(
       if (!refreshResponse.ok) {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+        localStorage.removeItem("usuario")
         window.dispatchEvent(new Event("logout"));
         hideLoader();
         return Promise.reject(new Error("Sesión expirada. Redirigiendo al login."));
