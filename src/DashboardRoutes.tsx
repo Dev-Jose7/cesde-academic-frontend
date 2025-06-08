@@ -12,6 +12,8 @@ import Alerts from "./pages/UiElements/Alerts";
 import Avatars from "./pages/UiElements/Avatars";
 import Badges from "./pages/UiElements/Badges";
 import Buttons from "./pages/UiElements/Buttons";
+import ManagementPrograms from "./pages/Directivos/Managementprograms";
+import SchoolsDirectives from "./pages/Directivos/SchoolsDirectives";
 import Images from "./pages/UiElements/Images";
 import Videos from "./pages/UiElements/Videos";
 import LineChart from "./pages/Charts/LineChart";
@@ -66,8 +68,8 @@ export default function DashboardRoutes() {
       {/* Directivo */}
       {usuario.tipo === "DIRECTIVO" && (
         <>
-          <Route path="escuelas" element={<FormElements />} />
-          <Route path="programas" element={<BasicTables />} />
+          <Route path="escuelas" element={<SchoolsDirectives />} />
+          <Route path="programas" element={<ManagementPrograms />} />
           <Route path="modulos" element={<Images />} />
           <Route path="estadisticas" element={<LineChart />} />
           <Route path="anuncios" element={<Avatars />} />

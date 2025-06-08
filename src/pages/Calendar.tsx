@@ -21,7 +21,7 @@ interface CalendarEvent extends EventInput {
   };
 }
 
-// Constantes
+// Mapeos y constantes
 const calendarsEvents = {
   Danger: "Prioridad alta",
   Success: "Prioridad baja",
@@ -39,13 +39,11 @@ const dayMap: Record<string, number> = {
   SABADO: 6,
 };
 
-// Render personalizado
 const renderEventContent = (eventInfo: any) => {
-  const calendarLevel = eventInfo.event.extendedProps?.calendar?.toLowerCase() || "primary";
+  const calendarLevel =
+    eventInfo.event.extendedProps?.calendar?.toLowerCase() || "primary";
   const colorClass = `fc-bg-${calendarLevel}`;
   const { grupo, docente, modulo } = eventInfo.event.extendedProps;
-
-  console.log(docente)
 
   return (
     <div className={`p-1 rounded ${colorClass}`}>
@@ -57,7 +55,6 @@ const renderEventContent = (eventInfo: any) => {
   );
 };
 
-// Componente principal
 const Calendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -72,21 +69,54 @@ const Calendar: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const usuarioString = localStorage.getItem("usuario");
-        if (!usuarioString) return;
+        const token = localStorage.getItem("token");
+        if (!token) {
+          alert("No hay token de autenticación. Por favor, inicia sesión.");
+          return;
+        }
 
-        const usuario = JSON.parse(usuarioString);
-        const response = await fetch("/api/clase/lista");
+        // Usa la ruta proxy configurada en vite.config.ts ("/api/clase/lista")
+        const response = await fetch("/api/clase/lista", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Error HTTP ${response.status}: ${response.statusText || "Error"}`
+          );
+        }
+
         const data = await response.json();
 
+        // Obtener usuario para filtrar clases por docente
+        const usuarioString = localStorage.getItem("usuario");
+        if (!usuarioString) return;
+        const usuario = JSON.parse(usuarioString);
+
+        // Filtrar clases según docente que esté en localStorage.usuario.nombre
         const filteredClasses = data.filter(
-          (item: any) => item.docente?.toUpperCase() === usuario.nombre.toUpperCase()
+          (item: any) =>
+            item.docente?.toUpperCase() === usuario.nombre.toUpperCase()
         );
 
+        // Por cada clase traer sus horarios
         const horariosPorClase = await Promise.all(
           filteredClasses.map(async (clase: any) => {
-            const res = await fetch(`/api/clase-horario/clase/${clase.id}`);
+            const res = await fetch(`/api/clase-horario/clase/${clase.id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!res.ok) {
+              throw new Error(
+                `Error HTTP ${res.status}: ${res.statusText || "Error"}`
+              );
+            }
+
             const horarios = await res.json();
+
+            // Mapea los horarios con información de la clase
             return horarios.map((horario: any) => ({
               ...horario,
               claseNombre: clase.nombre,
@@ -97,8 +127,10 @@ const Calendar: React.FC = () => {
           })
         );
 
+        // Aplanar el array para tener todos los horarios juntos
         const todosLosHorarios = horariosPorClase.flat();
 
+        // Mapear a eventos para FullCalendar
         const mappedEvents: CalendarEvent[] = todosLosHorarios.map((item: any) => {
           const diaSemana = dayMap[item.dia?.toUpperCase()] ?? 0;
 
@@ -121,14 +153,18 @@ const Calendar: React.FC = () => {
         });
 
         setEvents(mappedEvents);
-      } catch (error) {
-        console.error("Error cargando eventos:", error);
+      } catch (error: any) {
+        console.error("Error cargando eventos:", error.message || error);
+        alert(
+          `No se pudieron cargar los eventos. ${error.message || "Error desconocido"}`
+        );
       }
     };
 
     fetchEvents();
   }, []);
 
+  // Limpia campos modal
   const resetModalFields = () => {
     setEventTitle("");
     setEventStartDate("");
@@ -137,6 +173,7 @@ const Calendar: React.FC = () => {
     setSelectedEvent(null);
   };
 
+  // Selección rango fecha en calendario
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     resetModalFields();
     setEventStartDate(selectInfo.startStr);
@@ -144,6 +181,7 @@ const Calendar: React.FC = () => {
     openModal();
   };
 
+  // Click en evento existente
   const handleEventClick = (clickInfo: EventClickArg) => {
     const event = clickInfo.event;
     setSelectedEvent({
@@ -163,6 +201,7 @@ const Calendar: React.FC = () => {
     openModal();
   };
 
+  // Agregar o actualizar evento desde modal
   const handleAddOrUpdateEvent = () => {
     if (!eventTitle) {
       alert("El título es obligatorio");
@@ -249,8 +288,8 @@ const Calendar: React.FC = () => {
               onChange={(date: Date | null) =>
                 date && setEventStartDate(date.toISOString().split("T")[0])
               }
-              className="border rounded p-2 w-full mb-4"
               dateFormat="yyyy-MM-dd"
+              className="border rounded p-2 w-full mb-4"
             />
 
             <label className="block mb-2 font-medium">Fecha fin</label>
@@ -259,11 +298,11 @@ const Calendar: React.FC = () => {
               onChange={(date: Date | null) =>
                 date && setEventEndDate(date.toISOString().split("T")[0])
               }
-              className="border rounded p-2 w-full mb-4"
               dateFormat="yyyy-MM-dd"
+              className="border rounded p-2 w-full mb-4"
             />
 
-            <label className="block mb-2 font-medium">Categoría</label>
+            <label className="block mb-2 font-medium">Prioridad</label>
             <select
               className="border rounded p-2 w-full mb-4"
               value={eventLevel}
@@ -276,9 +315,9 @@ const Calendar: React.FC = () => {
               ))}
             </select>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end space-x-4">
               <button
-                className="bg-gray-300 px-4 py-2 rounded"
+                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
                 onClick={() => {
                   closeModal();
                   resetModalFields();
@@ -286,12 +325,12 @@ const Calendar: React.FC = () => {
               >
                 Cancelar
               </button>
+
               <button
-                className="bg-[#ed2e91] hover:bg-[#d41e7c] text-white px-4 py-2 rounded"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                 onClick={handleAddOrUpdateEvent}
-                disabled={!eventTitle || !eventStartDate || !eventEndDate}
               >
-                {selectedEvent ? "Guardar" : "Agregar"}
+                {selectedEvent ? "Actualizar" : "Agregar"}
               </button>
             </div>
           </div>
@@ -302,3 +341,5 @@ const Calendar: React.FC = () => {
 };
 
 export default Calendar;
+
+
