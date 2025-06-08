@@ -4,19 +4,16 @@ import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import { fetchAuth } from "../../utils/fetchAuth";
 
-export type Usuario = {
+type Anuncio = {
   id: number;
-  cedula: string;
-  nombre: string;
-  tipo: "ESTUDIANTE" | "DOCENTE" | "DIRECTIVO" | "ADMINISTRATIVO";
-  estado: string;
+  titulo: string;
+  contenido: string;
   creado: string;
-  actualizado: string
 };
 
 export default function StatisticsChart() {
-  const [userData, setUserData] = useState<Usuario[]>([]);
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
+  const [usuario, setUsuario] = useState<any>(null);
 
   useEffect(() => {
     const usuarioLocal = localStorage.getItem("usuario");
@@ -31,36 +28,33 @@ export default function StatisticsChart() {
   }, []);
 
   useEffect(() => {
-    const cargarListaUsuarios = async () => {
+    const cargarAnuncios = async () => {
       try {
-        const response = await fetchAuth("/api/usuario/lista", { method: "GET" });
+        const response = await fetchAuth("/api/anuncio/lista", { method: "GET" });
 
         if (response.ok) {
           const data = await response.json();
-          setUserData(data);
+          setAnuncios(data);
         } else {
-          console.error("Error al obtener actividades");
+          console.error("Error al obtener anuncios");
         }
       } catch (err) {
         console.error("Error inesperado:", err);
-        (true);
       }
     };
 
-    if (usuario?.tipo == "ADMINISTRATIVO") {
-      cargarListaUsuarios();
+    if (usuario?.tipo === "ADMINISTRATIVO") {
+      cargarAnuncios();
     }
+  }, [usuario]);
 
-  }, []);
-
-  // Función para agrupar por varios estados
-  const countUsersByMonth = (estados: string[]) => {
+  // Contar anuncios por mes
+  const countAnunciosByMonth = () => {
     const monthlyCounts = Array(12).fill(0);
 
-    userData.forEach((user) => {
-      const estadoNormalizado = user.estado?.toUpperCase();
-      if (user.creado && estados.includes(estadoNormalizado)) {
-        const month = new Date(user.creado).getMonth();
+    anuncios.forEach((anuncio) => {
+      if (anuncio.creado) {
+        const month = new Date(anuncio.creado).getMonth();
         monthlyCounts[month]++;
       }
     });
@@ -68,24 +62,22 @@ export default function StatisticsChart() {
     return monthlyCounts;
   };
 
-  const activeUsers = countUsersByMonth(["ACTIVO", "GRADUADO"]);
-  const inactiveUsers = countUsersByMonth(["INACTIVO", "SUSPENDIDO", "ELIMINADO"]);
+  const anunciosPorMes = countAnunciosByMonth();
 
   const series = [
-    { name: "Usuarios Activos", data: activeUsers },
-    { name: "Usuarios Inactivos", data: inactiveUsers },
+    { name: "Anuncios creados", data: anunciosPorMes }
   ];
 
   const options: ApexOptions = {
     legend: { show: false },
-    colors: ["#ed2e91", "#ff7c5e"],
+    colors: ["#ed2e91"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,
       type: "area",
       toolbar: { show: false },
     },
-    stroke: { curve: "straight", width: [2, 2] },
+    stroke: { curve: "straight", width: [2] },
     fill: {
       type: "gradient",
       gradient: { opacityFrom: 0.55, opacityTo: 0 },
@@ -129,10 +121,10 @@ export default function StatisticsChart() {
     },
   };
 
-  if (!userData.length) {
+  if (!anuncios.length) {
     return (
       <div className="text-gray-500 text-sm p-4">
-        Cargando datos o no hay usuarios disponibles.
+        Cargando datos o no hay anuncios disponibles.
       </div>
     );
   }
@@ -142,10 +134,10 @@ export default function StatisticsChart() {
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Estadísticas de Usuarios
+            Estadísticas de Anuncios
           </h3>
           <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Usuarios activos e inactivos por mes
+            Cantidad de anuncios publicados por mes
           </p>
         </div>
         <div className="flex items-start w-full gap-3 sm:justify-end">
@@ -161,3 +153,4 @@ export default function StatisticsChart() {
     </div>
   );
 }
+

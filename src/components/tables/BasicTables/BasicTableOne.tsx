@@ -17,38 +17,47 @@ export default function BasicTableOne() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  const usuarioLocal = localStorage.getItem("usuario");
-  if (usuarioLocal) {
-    try {
-      const user = JSON.parse(usuarioLocal);
-      setUsuario(user);
+    const usuarioLocal = localStorage.getItem("usuario");
+    const token = localStorage.getItem("accessToken");
 
-      fetch("api/calificacion/lista")
-        .then(async (res) => {
-          const text = await res.text();
-          console.log("Respuesta cruda:", text);
-          return JSON.parse(text); 
+    if (usuarioLocal && token) {
+      try {
+        const user = JSON.parse(usuarioLocal);
+        setUsuario(user);
+
+        fetch("api/calificacion/lista", {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
         })
-        .then((data) => {
-          setCalificaciones(data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error al obtener calificaciones:", err);
-          setLoading(false);
-        });
-    } catch (err) {
-      console.error("Error al parsear usuario:", err);
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+          })
+          .then((data) => {
+            setCalificaciones(data);
+            setLoading(false);
+          })
+          .catch((err) => {
+            console.error("Error al obtener calificaciones:", err);
+            setLoading(false);
+          });
+      } catch (err) {
+        console.error("Error al parsear usuario:", err);
+        setLoading(false);
+      }
+    } else {
+      console.warn("No hay usuario o token almacenado");
+      setLoading(false);
     }
-  }
-}, []); 
-
+  }, []);
 
   return (
     <div className="container">
-      <h2 className="title">
-        Calificaciones Académicas
-      </h2>
+      <h2 className="title">Calificaciones Académicas</h2>
 
       {loading ? (
         <div className="spinner"></div>

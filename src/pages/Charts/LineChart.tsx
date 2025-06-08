@@ -2,35 +2,35 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import LineChartOne from "../../components/charts/line/LineChartOne";
 import PageMeta from "../../components/common/PageMeta";
+import { useEffect } from "react";
 
 export default function LineChart() {
 
-  const getAnalitycs = async () => {
-    let usuario = localStorage.getItem("usuario");
+  useEffect(() => {
+    const getAnalitycs = async () => {
+      const usuario = localStorage.getItem("usuario");
+      if (!usuario) return;
 
-    if(usuario == null) {
-      return
-    }
+      const id = JSON.parse(usuario).id;
+      try {
+        const responseAsistencias = await fetch(`https://cesde-academic-analytics-production.up.railway.app/estudiantes/${id}/asistencias`);
+        const responseCalificaciones = await fetch(`https://cesde-academic-analytics-production.up.railway.app/estudiantes/${id}/califiaciones`);
+        const responseDocentes = await fetch(`https://cesde-academic-analytics-production.up.railway.app/docentes/${id}/notas`);
 
-    let id = JSON.parse(usuario).id
-    let responseAsistencias = await fetch(`https://cesde-academic-analytics-production.up.railway.app/estudiantes/${id}/asistencias`);
-    let responseCalificaciones = await fetch(`https://cesde-academic-analytics-production.up.railway.app/estudiantes/${id}/califiaciones`);
-    let responseDocentes = await fetch(`https://cesde-academic-analytics-production.up.railway.app/docentes/${id}/notas`)
+        const dataAsistencias = await responseAsistencias.json();
+        const dataCalificaciones = await responseCalificaciones.json();
+        const dataDocentes = await responseDocentes.json();
 
-    try {
-      let dataAsistencias = await responseAsistencias.json()
-      let dataCalificaciones = await responseCalificaciones.json();
-      let dataDocentes = await responseDocentes.json();
-      console.log("Asistencias del usuario: ", dataAsistencias);
-      console.log("Calificaciones usuario: ", dataCalificaciones)
-      console.log("Promedio de notas de los estudiantes del docente: ", dataDocentes)
-    } catch (error) {
-      
-    }
-    
-  }
+        console.log("Asistencias del usuario: ", dataAsistencias);
+        console.log("Calificaciones usuario: ", dataCalificaciones);
+        console.log("Promedio de notas de los estudiantes del docente: ", dataDocentes);
+      } catch (error) {
+        console.error("Error fetching analytics:", error);
+      }
+    };
 
-  getAnalitycs();
+    getAnalitycs();
+  }, []);
 
   return (
     <>

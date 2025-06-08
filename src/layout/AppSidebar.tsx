@@ -47,6 +47,7 @@ const getNavItemsByUserType = (tipo: string): NavItem[] => {
         { icon: <CalenderIcon />, name: "Clases", path: "/dashboard/clases" },
         { icon: <UserCircleIcon />, name: "Actividades", path: "/dashboard/actividades" },
         { icon: <TableIcon />, name: "Calificaciones", path: "/dashboard/calificaciones" },
+        { icon: <ListIcon />, name: "Asistencias", path: "/dashboard/asistencias" },
         { icon: <PieChartIcon />, name: "Anuncios", path: "/dashboard/anuncios" },
         { icon: <PieChartIcon />, name: "Reportes", path: "/dashboard/reportes" },
       ];
@@ -74,9 +75,9 @@ const getNavItemsByUserType = (tipo: string): NavItem[] => {
         { icon: <UserCircleIcon />, name: "Escuelas", path: "/dashboard/escuelas" },
         { icon: <TableIcon />, name: "Programas", path: "/dashboard/programas" },
         { icon: <ListIcon />, name: "Módulos", path: "/dashboard/modulos" },
-        { icon: <PieChartIcon />, name: "Estadísticas", path: "/dashboard/estadisticas" },
         { icon: <PieChartIcon />, name: "Anuncios", path: "/dashboard/anuncios" },
         { icon: <PieChartIcon />, name: "Reportes", path: "/dashboard/reportes" },
+        { icon: <PieChartIcon />, name: "Estadísticas", path: "/dashboard/estadisticas" },
       ];
     default:
       return [];
