@@ -41,15 +41,14 @@ export default function UserDropdown() {
 
     try {
       await fetchAuth("/api/auth/logout", {method: "POST"});
-    } catch (error) {
-      console.error("Error cerrando sesión:", error);
-    } finally {
       // Limpiar siempre
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("usuario");
       setUsuario(null);
       navigate("/signin");
+    } catch (error) {
+      console.error("Error cerrando sesión:", error);
     }
   }
 

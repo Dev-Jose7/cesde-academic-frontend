@@ -19,27 +19,27 @@ export default function BasicTableOne() {
   useEffect(() => {
   const usuarioLocal = localStorage.getItem("usuario");
   if (usuarioLocal) {
-    try {
-      const user = JSON.parse(usuarioLocal);
-      setUsuario(user);
+    // try {
+    //   const user = JSON.parse(usuarioLocal);
+    //   setUsuario(user);
 
-      fetch("api/calificacion/lista")
-        .then(async (res) => {
-          const text = await res.text();
-          console.log("Respuesta cruda:", text);
-          return JSON.parse(text); 
-        })
-        .then((data) => {
-          setCalificaciones(data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error al obtener calificaciones:", err);
-          setLoading(false);
-        });
-    } catch (err) {
-      console.error("Error al parsear usuario:", err);
-    }
+    //   fetch("api/calificacion/lista")
+    //     .then(async (res) => {
+    //       const text = await res.text();
+    //       console.log("Respuesta cruda:", text);
+    //       return JSON.parse(text); 
+    //     })
+    //     .then((data) => {
+    //       setCalificaciones(data);
+    //       setLoading(false);
+    //     })
+    //     .catch((err) => {
+    //       console.error("Error al obtener calificaciones:", err);
+    //       setLoading(false);
+    //     });
+    // } catch (err) {
+    //   console.error("Error al parsear usuario:", err);
+    // }
   }
 }, []); 
 
