@@ -55,7 +55,7 @@ function LogoutListener() {
 }
 
 export default function App() {
-  const loader = useGlobalLoader(); // Aquí generas el loader global
+  const loader = useGlobalLoader(); 
 
   return (
     <UserProvider>

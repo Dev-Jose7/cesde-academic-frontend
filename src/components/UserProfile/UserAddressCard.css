@@ -1,0 +1,8 @@
+.btn-corporate {
+  background-color: #ed2e91;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+.btn-corporate:hover {
+  background-color: #c82374; 
+}

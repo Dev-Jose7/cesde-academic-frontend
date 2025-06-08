@@ -1,0 +1,108 @@
+.container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.8rem;
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.title img {
+  width: 28px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.table thead {
+  background-color: #ff2d87;
+  color: white;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.table th,
+.table td {
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table tbody tr:hover {
+  background-color: #eef6ff;
+  transition: background-color 0.3s;
+}
+
+.nota-badge {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  font-weight: bold;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.bg-success {
+  background-color: #4caf50;
+  color: white;
+}
+
+.bg-warning {
+  background-color: #ffca28;
+  color: #333;
+}
+
+.bg-danger {
+  background-color: #e53935;
+  color: white;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 5px solid #ccc;
+  border-top: 5px solid #ff2d87;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 3rem auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+

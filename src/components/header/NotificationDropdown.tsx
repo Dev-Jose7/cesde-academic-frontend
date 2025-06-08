@@ -1,10 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
+  const [isDocente, setIsDocente] = useState(false);
+
+  useEffect(() => {
+  try {
+    const usuarioString = localStorage.getItem("usuario");
+    if (usuarioString) {
+      let usuario = null;
+
+      try {
+        usuario = JSON.parse(usuarioString);
+      } catch {
+        usuario = { tipo: "desconocido" };
+      }
+
+      if (usuario.tipo?.toLowerCase() === "docente") {
+        setIsDocente(true);
+      }
+    }
+  } catch (error) {
+    console.error("Error al obtener usuario del localStorage:", error);
+  }
+  }, []);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -18,6 +40,14 @@ export default function NotificationDropdown() {
     toggleDropdown();
     setNotifying(false);
   };
+
+  if (!isDocente) {
+    return (
+      <div className="p-4 text-sm text-red-600 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-200 dark:border-red-700">
+        No es accesible las notificaciones con tu usuario.
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
@@ -45,6 +75,7 @@ export default function NotificationDropdown() {
           />
         </svg>
       </button>
+
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
@@ -74,8 +105,9 @@ export default function NotificationDropdown() {
             </svg>
           </button>
         </div>
+
         <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
-          {/* Notificación con letra "C" y colores corporativos */}
+            {/* Notificación con letra "C" y colores corporativos */}
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
@@ -89,9 +121,8 @@ export default function NotificationDropdown() {
                   <span className="font-medium text-gray-800 dark:text-white/90">
                     Esteban Gómez
                   </span>
-                  <span>Subio un ejercicio</span>
+                  <span>Subió un ejercicio</span>
                 </span>
-
                 <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
                   <span>Taller</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
@@ -106,46 +137,70 @@ export default function NotificationDropdown() {
               onItemClick={closeDropdown}
               className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
             >
-              <span className="relative block w-full h-10 rounded-full z-1 max-w-10 flex justify-center items-center bg-[#ff7c5e] text-white font-semibold">
-                C
+              <span className="relative block w-full h-10 rounded-full z-1 max-w-10 flex justify-center items-center bg-[#4CAF50] text-white font-semibold">
+                J
               </span>
               <span className="block">
                 <span className="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
                   <span className="font-medium text-gray-800 dark:text-white/90">
-                    Ana Martínez
+                    Juan López
                   </span>
-                  <span>Subio un ejercicio</span>
+                  <span>Publicó una actividad</span>
                 </span>
-
                 <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
                   <span>Taller</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span>2 horas atrás</span>
+                  <span>1 hora atrás</span>
                 </span>
               </span>
             </DropdownItem>
           </li>
 
+          {/* Respuesta de calificación */}
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
             >
-              <span className="relative block w-full h-10 rounded-full z-1 max-w-10 flex justify-center items-center bg-[#ed2e91] text-white font-semibold">
-                C
+              <span className="relative block w-full h-10 rounded-full z-1 max-w-10 flex justify-center items-center bg-[#3F51B5] text-white font-semibold">
+                M
               </span>
               <span className="block">
                 <span className="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
                   <span className="font-medium text-gray-800 dark:text-white/90">
-                    Carlos Ramírez
+                    María Pérez
                   </span>
-                  <span>Subió un comentario</span>
+                  <span>Respondió a tu calificación</span>
                 </span>
-
                 <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
-                  <span>Comentario</span>
+                  <span>Proyecto Final</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span>1 día atrás</span>
+                  <span>30 min atrás</span>
+                </span>
+              </span>
+            </DropdownItem>
+          </li>
+
+          {/* Falta registrada */}
+          <li>
+            <DropdownItem
+              onItemClick={closeDropdown}
+              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+            >
+              <span className="relative block w-full h-10 rounded-full z-1 max-w-10 flex justify-center items-center bg-[#f44336] text-white font-semibold">
+                F
+              </span>
+              <span className="block">
+                <span className="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
+                  <span className="font-medium text-gray-800 dark:text-white/90">
+                    Coordinación Académica
+                  </span>
+                  <span>Registró una falta</span>
+                </span>
+                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                  <span>Clase de 6:00 PM</span>
+                  <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                  <span>Hoy a las 8:00 a.m.</span>
                 </span>
               </span>
             </DropdownItem>
@@ -155,6 +210,7 @@ export default function NotificationDropdown() {
     </div>
   );
 }
+
 
 
 

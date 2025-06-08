@@ -1,27 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import './custom.css';
 
+type Usuario = {
+  id: number;
+  cedula: string;
+  nombre: string;
+  tipo: string;
+  creado?: string;
+  actualizado?: string;
+};
+
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
 
-  const [formData, setFormData] = useState({
-  Github: "https://git.com/",
-  firstName: "Valeria",
-  lastName: "Salazar",
-  email: "valeria@cesde.edu.co",
-  phone: "+57 300 123 4567",
-  bio: "Desarrollador frontend con pasión por el diseño y React.",
+  const [usuario, setUsuario] = useState<Usuario>({
+    id: 0,
+    cedula: "",
+    nombre: "",
+    tipo: "",
+    creado: "",
+    actualizado: "",
   });
+
+  useEffect(() => {
+    const usuarioStr = localStorage.getItem("usuario");
+    if (usuarioStr) {
+      try {
+        const userObj = JSON.parse(usuarioStr);
+        setUsuario(userObj);
+      } catch (error) {
+        console.warn("Error parsing usuario from localStorage", error);
+      }
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setUsuario((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSave = () => {
-    console.log("Saving changes...", formData);
+    localStorage.setItem("usuario", JSON.stringify(usuario));
     closeModal();
   };
 
@@ -30,13 +54,10 @@ export default function UserInfoCard() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h4 className="text-xl font-bold text-[--primary-color] lg:mb-6">Información Personal</h4>
-
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6 2xl:gap-x-24">
-            <p className="text-sm font-medium text-gray-800">{formData.firstName}</p>
-            <p className="text-sm font-medium text-gray-800">{formData.lastName}</p>
-            <p className="text-sm font-medium text-gray-800">{formData.email}</p>
-            <p className="text-sm font-medium text-gray-800">{formData.phone}</p>
-            <p className="text-sm font-medium text-gray-800">{formData.bio}</p>
+            <p className="text-sm font-medium text-gray-800">Cédula: {usuario.cedula}</p>
+            <p className="text-sm font-medium text-gray-800">Nombre: {usuario.nombre}</p>
+            <p className="text-sm font-medium text-gray-800">Tipo: {usuario.tipo}</p>
           </div>
         </div>
 
@@ -53,64 +74,35 @@ export default function UserInfoCard() {
           <h4 className="text-2xl font-semibold text-[--primary-color] mb-2">Editar información personal</h4>
           <form className="flex flex-col">
             <div className="custom-scrollbar h-[450px] overflow-y-auto">
+              {/* No editamos el ID ni fechas */}
               <input
                 type="text"
-                id="linkedin"
-                name="linkedin"
-                placeholder="LinkedIn"
-                value={formData.Github}
+                id="cedula"
+                name="cedula"
+                placeholder="Cédula"
+                value={usuario.cedula}
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded-md mb-4"
               />
 
               <input
                 type="text"
-                id="firstName"
-                name="firstName"
-                placeholder="First Name"
-                value={formData.firstName}
+                id="nombre"
+                name="nombre"
+                placeholder="Nombre completo"
+                value={usuario.nombre}
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded-md mb-4"
               />
 
               <input
                 type="text"
-                id="lastName"
-                name="lastName"
-                placeholder="Last Name"
-                value={formData.lastName}
+                id="tipo"
+                name="tipo"
+                placeholder="Tipo de usuario"
+                value={usuario.tipo}
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              />
-
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              />
-
-              <input
-                type="text"
-                id="phone"
-                name="phone"
-                placeholder="Phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              />
-
-              <input
-                type="text"
-                id="bio"
-                name="bio"
-                placeholder="Bio"
-                value={formData.bio}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
 
@@ -136,6 +128,7 @@ export default function UserInfoCard() {
     </div>
   );
 }
+
 
 
 

@@ -47,6 +47,7 @@ export async function fetchAuth(
       if (!refreshResponse.ok) {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+        localStorage.removeItem("usuario")
         window.dispatchEvent(new Event("logout"));
         return Promise.reject(
           new Error("Sesión expirada. Redirigiendo al login.")
@@ -72,9 +73,10 @@ export async function fetchAuth(
     if (response.status === 403) {
       console.error("El usuario no está autorizado para consultar el recurso");
     }
-
     return response;
 
+  } catch (error) {
+    throw error;
   } finally {
     hideLoader();
   }

@@ -4,11 +4,10 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import "./Calendar.css";
-import { useModal } from "../hooks/useModal";
+import { fetchAuth } from "../utils/fetchAuth";
+import { Usuario } from "../context/UserContext";
 
 // Interfaces
 interface CalendarEvent extends EventInput {
@@ -18,17 +17,31 @@ interface CalendarEvent extends EventInput {
     docente?: string;
     modulo?: string;
     dia?: string;
+    horaInicio?: string;
+    horaFin?: string;
   };
 }
 
-// Constantes
-const calendarsEvents = {
-  Danger: "Prioridad alta",
-  Success: "Prioridad baja",
-  Primary: "Prioridad media",
-  Warning: "Prioridad 100%",
-};
+export interface GrupoEstudiante {
+  grupoId: number;
+  estudianteId: string;
+}
 
+export interface Clase {
+  id: number;
+  grupo: string;
+  docente: string;
+  modulo: string;
+}
+
+export interface ClaseHorario {
+  clase: string;
+  dia: string;
+  horaInicio: string;
+  horaFin: string;
+}
+
+// Día a número para FullCalendar
 const dayMap: Record<string, number> = {
   DOMINGO: 0,
   LUNES: 1,
@@ -39,154 +52,154 @@ const dayMap: Record<string, number> = {
   SABADO: 6,
 };
 
-// Render personalizado
+// Renderizado de cada evento
 const renderEventContent = (eventInfo: any) => {
-  const calendarLevel = eventInfo.event.extendedProps?.calendar?.toLowerCase() || "primary";
+  const calendarLevel =
+    eventInfo.event.extendedProps?.calendar?.toLowerCase() || "primary";
   const colorClass = `fc-bg-${calendarLevel}`;
-  const { grupo, docente, modulo } = eventInfo.event.extendedProps;
-
-  console.log(docente)
+  const { docente, horaInicio, horaFin } = eventInfo.event.extendedProps;
 
   return (
     <div className={`p-1 rounded ${colorClass}`}>
-      <div className="font-bold text-sm">{eventInfo.timeText}</div>
-      <div className="text-xs">{eventInfo.event.title}</div>
-      <div className="text-[10px]">Módulo: {modulo}</div>
-      <div className="text-[10px]">Grupo: {grupo}</div>
+
+      {/* Nombre clase */}
+      <div className="text-sm text-primary font-semibold break-words whitespace-normal">
+        {eventInfo.event.title}
+      </div>
+
+      {/* Nombre docente */}
+      <div className="text-xs font-medium break-words whitespace-normal">
+        Docente: {docente}
+      </div>
+
+      {/* Rango horario */}
+      <div className="text-xs break-words whitespace-normal">
+        {horaInicio} - {horaFin}
+      </div>
     </div>
   );
 };
 
-// Componente principal
 const Calendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventStartDate, setEventStartDate] = useState("");
-  const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("Primary");
-
   const calendarRef = useRef<FullCalendar>(null);
-  const { isOpen, openModal, closeModal } = useModal();
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const usuarioString = localStorage.getItem("usuario");
-        if (!usuarioString) return;
+        const usuarioStorage = localStorage.getItem("usuario");
 
-        const usuario = JSON.parse(usuarioString);
-        const response = await fetch("/api/clase/lista");
-        const data = await response.json();
+        if (usuarioStorage) {
+          const usuario: Usuario = JSON.parse(usuarioStorage);
+          let eventosTotales: CalendarEvent[] = [];
 
-        const filteredClasses = data.filter(
-          (item: any) => item.docente?.toUpperCase() === usuario.nombre.toUpperCase()
-        );
+          switch (usuario.tipo) {
+            case "ESTUDIANTE":
+              const grupoEstudianteResponse = await fetchAuth(
+                `/api/grupo-estudiante/estudiante/${usuario.id}`
+              );
+              const grupoEstudianteData: GrupoEstudiante[] =
+                await grupoEstudianteResponse.json();
 
-        const horariosPorClase = await Promise.all(
-          filteredClasses.map(async (clase: any) => {
-            const res = await fetch(`/api/clase-horario/clase/${clase.id}`);
-            const horarios = await res.json();
-            return horarios.map((horario: any) => ({
-              ...horario,
-              claseNombre: clase.nombre,
-              grupo: clase.grupo,
-              docente: clase.docente,
-              modulo: clase.modulo,
-            }));
-          })
-        );
+              for (const grupo of grupoEstudianteData) {
+                const claseResponse = await fetchAuth(
+                  `/api/clase/grupo/${grupo.grupoId}`
+                );
+                const claseData: Clase[] = await claseResponse.json();
 
-        const todosLosHorarios = horariosPorClase.flat();
+                for (const clase of claseData) {
+                  const claseHorarioResponse = await fetchAuth(
+                    `/api/clase-horario/clase/${clase.id}`
+                  );
+                  const claseHorarioData: ClaseHorario[] =
+                    await claseHorarioResponse.json();
 
-        const mappedEvents: CalendarEvent[] = todosLosHorarios.map((item: any) => {
-          const diaSemana = dayMap[item.dia?.toUpperCase()] ?? 0;
+                  const eventosClase = claseHorarioData.map((horario) => {
+                    const diaSemana = dayMap[horario.dia.toUpperCase()] ?? 0;
 
-          return {
-            id: item.id?.toString(),
-            title: item.claseNombre || "Clase",
-            daysOfWeek: [diaSemana],
-            startTime: item.horaInicio,
-            endTime: item.horaFin,
-            startRecur: "2025-01-01",
-            endRecur: "2025-12-31",
-            extendedProps: {
-              calendar: "Academico",
-              grupo: item.grupo,
-              docente: item.docente,
-              modulo: item.modulo,
-              dia: item.dia,
-            },
-          };
-        });
+                    return {
+                      id: `${clase.id}-${horario.dia}-${horario.horaInicio}`,
+                      title: horario.clase,
+                      daysOfWeek: [diaSemana],
+                      startTime: horario.horaInicio,
+                      endTime: horario.horaFin,
+                      startRecur: "2025-01-01",
+                      endRecur: "2025-12-31",
+                      extendedProps: {
+                        calendar: "Academico",
+                        grupo: clase.grupo,
+                        docente: clase.docente,
+                        modulo: clase.modulo,
+                        dia: horario.dia,
+                        horaInicio: horario.horaInicio,
+                        horaFin: horario.horaFin,
+                      },
+                    } as CalendarEvent;
+                  });
 
-        setEvents(mappedEvents);
+                  eventosTotales = eventosTotales.concat(eventosClase);
+                }
+              }
+
+              break;
+
+            case "DOCENTE":
+              const response = await fetchAuth(`/api/clase/docente/${usuario.id}`);
+              const clasesDocente: Clase[] = await response.json();
+
+              for (const clase of clasesDocente) {
+                const claseHorarioResponse = await fetchAuth(`/api/clase-horario/clase/${clase.id}`);
+                const claseHorarioData: ClaseHorario[] = await claseHorarioResponse.json();
+
+                const eventosClase = claseHorarioData.map((horario) => {
+                  const diaSemana = dayMap[horario.dia.toUpperCase()] ?? 0;
+
+                  return {
+                    id: `${clase.id}-${horario.dia}-${horario.horaInicio}`,
+                    title: horario.clase,
+                    daysOfWeek: [diaSemana],
+                    startTime: horario.horaInicio,
+                    endTime: horario.horaFin,
+                    startRecur: "2025-01-01",
+                    endRecur: "2025-12-31",
+                    extendedProps: {
+                      calendar: "Academico",
+                      grupo: clase.grupo,
+                      docente: clase.docente,
+                      modulo: clase.modulo,
+                      dia: horario.dia,
+                      horaInicio: horario.horaInicio,
+                      horaFin: horario.horaFin,
+                    },
+                  } as CalendarEvent;
+                });
+
+                eventosTotales = eventosTotales.concat(eventosClase);
+              }
+
+              break;
+
+            case "ADMINISTRATIVO":
+            case "DIRECTIVO":
+              // Implementar si es necesario
+              break;
+          }
+
+          setEvents(eventosTotales);
+        }
       } catch (error) {
-        console.error("Error cargando eventos:", error);
+        console.error("Error al cargar eventos:", error);
       }
     };
 
     fetchEvents();
   }, []);
 
-  const resetModalFields = () => {
-    setEventTitle("");
-    setEventStartDate("");
-    setEventEndDate("");
-    setEventLevel("Primary");
-    setSelectedEvent(null);
-  };
+  // 🔇 Modal desactivado al seleccionar fecha
+  const handleDateSelect = (_selectInfo: DateSelectArg) => {};
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
-    resetModalFields();
-    setEventStartDate(selectInfo.startStr);
-    setEventEndDate(selectInfo.endStr || selectInfo.startStr);
-    openModal();
-  };
-
-  const handleEventClick = (clickInfo: EventClickArg) => {
-    const event = clickInfo.event;
-    setSelectedEvent({
-      id: event.id,
-      title: event.title || "",
-      start: event.start?.toISOString(),
-      end: event.end?.toISOString(),
-      extendedProps: {
-        calendar: event.extendedProps?.calendar || "Primary",
-      },
-    });
-
-    setEventTitle(event.title || "");
-    setEventStartDate(event.start?.toISOString().split("T")[0] || "");
-    setEventEndDate(event.end?.toISOString().split("T")[0] || "");
-    setEventLevel(event.extendedProps?.calendar || "Primary");
-    openModal();
-  };
-
-  const handleAddOrUpdateEvent = () => {
-    if (!eventTitle) {
-      alert("El título es obligatorio");
-      return;
-    }
-
-    const newEvent: CalendarEvent = {
-      id: selectedEvent?.id || Date.now().toString(),
-      title: eventTitle,
-      start: eventStartDate,
-      end: eventEndDate,
-      allDay: true,
-      extendedProps: { calendar: eventLevel },
-    };
-
-    setEvents((prev) =>
-      selectedEvent
-        ? prev.map((e) => (e.id === selectedEvent.id ? newEvent : e))
-        : [...prev, newEvent]
-    );
-
-    closeModal();
-    resetModalFields();
-  };
+  // 🔇 Modal desactivado al hacer clic en evento
+  const handleEventClick = (_clickInfo: EventClickArg) => {};
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -194,10 +207,10 @@ const Calendar: React.FC = () => {
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
+          initialView="timeGridWeek"
           locale={esLocale}
           headerToolbar={{
-            left: "prev,next addEventButton",
+            left: "prev,next",
             center: "title",
             right: "dayGridMonth,timeGridWeek",
           }}
@@ -206,97 +219,8 @@ const Calendar: React.FC = () => {
           select={handleDateSelect}
           eventClick={handleEventClick}
           eventContent={renderEventContent}
-          customButtons={{
-            addEventButton: {
-              text: "Agregar Reunión Personal +",
-              click: () => {
-                resetModalFields();
-                openModal();
-              },
-            },
-          }}
         />
       </div>
-
-      {isOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]"
-          onClick={() => {
-            closeModal();
-            resetModalFields();
-          }}
-        >
-          <div
-            className="bg-white rounded-lg p-6 max-w-lg w-full shadow-lg z-[10000]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-semibold mb-4">
-              {selectedEvent ? "Editar Evento" : "Nuevo Evento"}
-            </h2>
-
-            <label className="block mb-2 font-medium">Título</label>
-            <input
-              type="text"
-              className="border rounded p-2 w-full mb-4"
-              value={eventTitle}
-              onChange={(e) => setEventTitle(e.target.value)}
-              placeholder="Escribe el título"
-            />
-
-            <label className="block mb-2 font-medium">Fecha inicio</label>
-            <DatePicker
-              selected={eventStartDate ? new Date(eventStartDate) : null}
-              onChange={(date: Date | null) =>
-                date && setEventStartDate(date.toISOString().split("T")[0])
-              }
-              className="border rounded p-2 w-full mb-4"
-              dateFormat="yyyy-MM-dd"
-            />
-
-            <label className="block mb-2 font-medium">Fecha fin</label>
-            <DatePicker
-              selected={eventEndDate ? new Date(eventEndDate) : null}
-              onChange={(date: Date | null) =>
-                date && setEventEndDate(date.toISOString().split("T")[0])
-              }
-              className="border rounded p-2 w-full mb-4"
-              dateFormat="yyyy-MM-dd"
-            />
-
-            <label className="block mb-2 font-medium">Categoría</label>
-            <select
-              className="border rounded p-2 w-full mb-4"
-              value={eventLevel}
-              onChange={(e) => setEventLevel(e.target.value)}
-            >
-              {Object.entries(calendarsEvents).map(([key, label]) => (
-                <option key={key} value={key}>
-                  {label}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex justify-end gap-4">
-              <button
-                className="bg-gray-300 px-4 py-2 rounded"
-                onClick={() => {
-                  closeModal();
-                  resetModalFields();
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                className="bg-[#ed2e91] hover:bg-[#d41e7c] text-white px-4 py-2 rounded"
-                onClick={handleAddOrUpdateEvent}
-                disabled={!eventTitle || !eventStartDate || !eventEndDate}
-              >
-                {selectedEvent ? "Guardar" : "Agregar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

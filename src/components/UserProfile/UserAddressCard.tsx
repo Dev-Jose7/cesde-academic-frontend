@@ -4,14 +4,17 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import './custom.css'
+import './UserAddressCard.css'
 
 export default function UserAddressCard() {
   const { isOpen, openModal, closeModal } = useModal();
+
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");
     closeModal();
   };
+
   return (
     <>
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -65,6 +68,7 @@ export default function UserAddressCard() {
           </button>
         </div>
       </div>
+
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
         <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
@@ -73,6 +77,9 @@ export default function UserAddressCard() {
             </h4>
             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
               Actualice sus datos para mantener su perfil al día.
+            </p>
+            <p className="corporate-warning mb-6 text-sm font-semibold">
+              * La modificación de la dirección debe ser solicitada directamente al Directivo de su área. No puede cambiar estos datos usted mismo.
             </p>
           </div>
           <form className="flex flex-col">
@@ -90,11 +97,8 @@ export default function UserAddressCard() {
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
+              <Button size="sm" variant="outline" onClick={closeModal} className="btn-corporate">
                 Cerrar
-              </Button>
-              <Button size="sm" onClick={handleSave}>
-                Guardar Cambios
               </Button>
             </div>
           </form>
@@ -103,3 +107,4 @@ export default function UserAddressCard() {
     </>
   );
 }
+
