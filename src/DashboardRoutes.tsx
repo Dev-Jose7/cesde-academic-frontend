@@ -6,19 +6,23 @@ import Home from "./pages/Dashboard/Home";
 import UserProfiles from "./pages/UserProfiles";
 import Calendar from "./pages/Calendar";
 import ChartsDashboard from "./pages/Charts/ChartsDashboard";
+import ActividadesPanelEstudent from "./pages/UiElements/ActividadesPanelEstudent";
 import Blank from "./pages/Blank";
 import FormElements from "./pages/Forms/FormElements";
 import BasicTables from "./pages/Tables/BasicTables";
-import Alerts from "./pages/UiElements/Alerts";
-import Avatars from "./pages/UiElements/Avatars";
+import AsistenciaPage from "./pages/UiElements/AsistenciasPage";
+import Avatars from "./pages/UiElements/AnunciosList";
+import BasicTableOneTeacher from "./components/tables/BasicTables/BasicTableOneTeacher";
 import Badges from "./pages/UiElements/Badges";
 import Buttons from "./pages/UiElements/Buttons";
 import ManagementPrograms from "./pages/Directivos/Managementprograms";
 import SchoolsDirectives from "./pages/Directivos/SchoolsDirectives";
 import Images from "./pages/UiElements/Images";
-import Videos from "./pages/UiElements/Videos";
+import ActividadesPanel from "./pages/UiElements/ActividadesPanel";
 import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
+import AnunciosList from "./pages/UiElements/AnunciosList";
+
 
 export default function DashboardRoutes() {
   const { usuario } = useUser();
@@ -36,10 +40,10 @@ export default function DashboardRoutes() {
       {usuario.tipo === "ESTUDIANTE" && (
         <>
           <Route path="calificaciones" element={<BasicTables />} />
-          <Route path="asistencias" element={<Alerts />} />
-          <Route path="modulos" element={<Videos />} />
+          <Route path="asistencias" element={<AsistenciaPage />} />
+          <Route path="actividades" element={<ActividadesPanelEstudent />} />
           <Route path="horarios" element={<Calendar />} />
-          <Route path="anuncios" element={<Avatars />} />
+          <Route path="anuncios" element={<AnunciosList />} />
           <Route path="estadisticas" element={<ChartsDashboard />} />
         </>
       )}
@@ -48,9 +52,9 @@ export default function DashboardRoutes() {
       {usuario.tipo === "DOCENTE" && (
         <>
           <Route path="clases" element={<Calendar />} />
-          <Route path="actividades" element={<FormElements />} />
-          <Route path="calificaciones" element={<BasicTables />} />
-          <Route path="asistencias" element={<Alerts />} />
+          <Route path="actividades" element={<ActividadesPanel />} />
+          <Route path="calificaciones" element={<BasicTableOneTeacher />} />
+          <Route path="asistencias" element={<AsistenciaPage />} />
           <Route path="anuncios" element={<Avatars />} />
           <Route path="reportes" element={<LineChart />} />
           <Route path="estadisticas" element={<ChartsDashboard />} />

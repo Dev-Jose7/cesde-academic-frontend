@@ -9,7 +9,6 @@ import "./Calendar.css";
 import { fetchAuth } from "../utils/fetchAuth";
 import { Usuario } from "../context/UserContext";
 
-// Interfaces
 interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
@@ -41,7 +40,6 @@ export interface ClaseHorario {
   horaFin: string;
 }
 
-// Día a número para FullCalendar
 const dayMap: Record<string, number> = {
   DOMINGO: 0,
   LUNES: 1,
@@ -52,28 +50,17 @@ const dayMap: Record<string, number> = {
   SABADO: 6,
 };
 
-// Renderizado de cada evento
 const renderEventContent = (eventInfo: any) => {
-  const calendarLevel =
-    eventInfo.event.extendedProps?.calendar?.toLowerCase() || "primary";
-  const colorClass = `fc-bg-${calendarLevel}`;
   const { docente, horaInicio, horaFin } = eventInfo.event.extendedProps;
-
   return (
-    <div className={`p-1 rounded ${colorClass}`}>
-
-      {/* Nombre clase */}
-      <div className="text-sm text-primary font-semibold break-words whitespace-normal">
+    <div className="p-1 rounded">
+      <div className="text-sm font-semibold text-black break-words whitespace-normal">
         {eventInfo.event.title}
       </div>
-
-      {/* Nombre docente */}
-      <div className="text-xs font-medium break-words whitespace-normal">
+      <div className="text-xs font-medium text-black break-words whitespace-normal">
         Docente: {docente}
       </div>
-
-      {/* Rango horario */}
-      <div className="text-xs break-words whitespace-normal">
+      <div className="text-xs text-black break-words whitespace-normal">
         {horaInicio} - {horaFin}
       </div>
     </div>
@@ -82,147 +69,158 @@ const renderEventContent = (eventInfo: any) => {
 
 const Calendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [calendarLoading, setCalendarLoading] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const usuarioStorage = localStorage.getItem("usuario");
+        if (!usuarioStorage) return;
 
-        if (usuarioStorage) {
-          const usuario: Usuario = JSON.parse(usuarioStorage);
-          let eventosTotales: CalendarEvent[] = [];
+        const usuario: Usuario = JSON.parse(usuarioStorage);
+        let eventosTotales: CalendarEvent[] = [];
 
-          switch (usuario.tipo) {
-            case "ESTUDIANTE":
-              const grupoEstudianteResponse = await fetchAuth(
-                `/api/grupo-estudiante/estudiante/${usuario.id}`
-              );
-              const grupoEstudianteData: GrupoEstudiante[] =
-                await grupoEstudianteResponse.json();
+        if (usuario.tipo === "ESTUDIANTE") {
+          const grupoEstudianteResponse = await fetchAuth(`/api/grupo-estudiante/estudiante/${usuario.id}`);
+          const grupoEstudianteData: GrupoEstudiante[] = await grupoEstudianteResponse.json();
 
-              for (const grupo of grupoEstudianteData) {
-                const claseResponse = await fetchAuth(
-                  `/api/clase/grupo/${grupo.grupoId}`
-                );
-                const claseData: Clase[] = await claseResponse.json();
+          for (const grupo of grupoEstudianteData) {
+            const claseResponse = await fetchAuth(`/api/clase/grupo/${grupo.grupoId}`);
+            const claseData: Clase[] = await claseResponse.json();
 
-                for (const clase of claseData) {
-                  const claseHorarioResponse = await fetchAuth(
-                    `/api/clase-horario/clase/${clase.id}`
-                  );
-                  const claseHorarioData: ClaseHorario[] =
-                    await claseHorarioResponse.json();
+            for (const clase of claseData) {
+              const horarioResponse = await fetchAuth(`/api/clase-horario/clase/${clase.id}`);
+              const horarios: ClaseHorario[] = await horarioResponse.json();
 
-                  const eventosClase = claseHorarioData.map((horario) => {
-                    const diaSemana = dayMap[horario.dia.toUpperCase()] ?? 0;
+              const eventos = horarios.map((horario) => ({
+                id: `${clase.id}-${horario.dia}-${horario.horaInicio}`,
+                title: horario.clase,
+                daysOfWeek: [dayMap[horario.dia.toUpperCase()] ?? 0],
+                startTime: horario.horaInicio,
+                endTime: horario.horaFin,
+                startRecur: "2025-01-01",
+                endRecur: "2025-12-31",
+                extendedProps: {
+                  calendar: "Academico",
+                  grupo: clase.grupo,
+                  docente: clase.docente,
+                  modulo: clase.modulo,
+                  dia: horario.dia,
+                  horaInicio: horario.horaInicio,
+                  horaFin: horario.horaFin,
+                },
+              }));
 
-                    return {
-                      id: `${clase.id}-${horario.dia}-${horario.horaInicio}`,
-                      title: horario.clase,
-                      daysOfWeek: [diaSemana],
-                      startTime: horario.horaInicio,
-                      endTime: horario.horaFin,
-                      startRecur: "2025-01-01",
-                      endRecur: "2025-12-31",
-                      extendedProps: {
-                        calendar: "Academico",
-                        grupo: clase.grupo,
-                        docente: clase.docente,
-                        modulo: clase.modulo,
-                        dia: horario.dia,
-                        horaInicio: horario.horaInicio,
-                        horaFin: horario.horaFin,
-                      },
-                    } as CalendarEvent;
-                  });
-
-                  eventosTotales = eventosTotales.concat(eventosClase);
-                }
-              }
-
-              break;
-
-            case "DOCENTE":
-              const response = await fetchAuth(`/api/clase/docente/${usuario.id}`);
-              const clasesDocente: Clase[] = await response.json();
-
-              for (const clase of clasesDocente) {
-                const claseHorarioResponse = await fetchAuth(`/api/clase-horario/clase/${clase.id}`);
-                const claseHorarioData: ClaseHorario[] = await claseHorarioResponse.json();
-
-                const eventosClase = claseHorarioData.map((horario) => {
-                  const diaSemana = dayMap[horario.dia.toUpperCase()] ?? 0;
-
-                  return {
-                    id: `${clase.id}-${horario.dia}-${horario.horaInicio}`,
-                    title: horario.clase,
-                    daysOfWeek: [diaSemana],
-                    startTime: horario.horaInicio,
-                    endTime: horario.horaFin,
-                    startRecur: "2025-01-01",
-                    endRecur: "2025-12-31",
-                    extendedProps: {
-                      calendar: "Academico",
-                      grupo: clase.grupo,
-                      docente: clase.docente,
-                      modulo: clase.modulo,
-                      dia: horario.dia,
-                      horaInicio: horario.horaInicio,
-                      horaFin: horario.horaFin,
-                    },
-                  } as CalendarEvent;
-                });
-
-                eventosTotales = eventosTotales.concat(eventosClase);
-              }
-
-              break;
-
-            case "ADMINISTRATIVO":
-            case "DIRECTIVO":
-              // Implementar si es necesario
-              break;
+              eventosTotales = eventosTotales.concat(eventos);
+            }
           }
-
-          setEvents(eventosTotales);
         }
+
+        if (usuario.tipo === "DOCENTE") {
+          const claseResponse = await fetchAuth(`/api/clase/docente/${usuario.id}`);
+          const clases: Clase[] = await claseResponse.json();
+
+          for (const clase of clases) {
+            const horarioResponse = await fetchAuth(`/api/clase-horario/clase/${clase.id}`);
+            const horarios: ClaseHorario[] = await horarioResponse.json();
+
+            const eventos = horarios.map((horario) => ({
+              id: `${clase.id}-${horario.dia}-${horario.horaInicio}`,
+              title: horario.clase,
+              daysOfWeek: [dayMap[horario.dia.toUpperCase()] ?? 0],
+              startTime: horario.horaInicio,
+              endTime: horario.horaFin,
+              startRecur: "2025-01-01",
+              endRecur: "2025-12-31",
+              extendedProps: {
+                calendar: "Academico",
+                grupo: clase.grupo,
+                docente: clase.docente,
+                modulo: clase.modulo,
+                dia: horario.dia,
+                horaInicio: horario.horaInicio,
+                horaFin: horario.horaFin,
+              },
+            }));
+
+            eventosTotales = eventosTotales.concat(eventos);
+          }
+        }
+
+        setEvents(eventosTotales);
       } catch (error) {
         console.error("Error al cargar eventos:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchEvents();
   }, []);
 
-  // 🔇 Modal desactivado al seleccionar fecha
-  const handleDateSelect = (_selectInfo: DateSelectArg) => {};
+  const handleDateSelect = (_: DateSelectArg) => {};
+  const handleEventClick = (_: EventClickArg) => {};
 
-  // 🔇 Modal desactivado al hacer clic en evento
-  const handleEventClick = (_clickInfo: EventClickArg) => {};
+  // Opcional: si quieres puedes controlar loading interno del calendario:
+  const handleLoading = (isLoadingCalendar: boolean) => {
+    setCalendarLoading(isLoadingCalendar);
+  };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-      <div className="custom-calendar">
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          locale={esLocale}
-          headerToolbar={{
-            left: "prev,next",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek",
-          }}
-          events={events}
-          selectable
-          select={handleDateSelect}
-          eventClick={handleEventClick}
-          eventContent={renderEventContent}
-        />
-      </div>
+    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] min-h-[400px] flex items-center justify-center">
+      {isLoading || calendarLoading ? (
+        <div className="flex flex-col items-center space-y-3">
+          <svg
+            className="animate-spin h-10 w-10 text-pink-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
+          <p className="text-gray-600 font-semibold text-lg">Cargando calendario...</p>
+        </div>
+      ) : (
+        <div className="custom-calendar w-full">
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            locale={esLocale}
+            headerToolbar={{
+              left: "prev,next",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek",
+            }}
+            events={events}
+            selectable
+            select={handleDateSelect}
+            eventClick={handleEventClick}
+            eventContent={renderEventContent}
+            loading={handleLoading} 
+          />
+        </div>
+      )}
     </div>
   );
 };
 
 export default Calendar;
+
+
+
+

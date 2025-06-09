@@ -70,3 +70,24 @@
   text-overflow: ellipsis;
 }
 
+.fc-timeGridWeek-view .fc-timegrid-event.fc-event {
+  background-color: rgba(237, 46, 145, 0.2) !important; 
+  border: 1px solid #ed2e91 !important; 
+  color: black !important; 
+  box-shadow: none !important; 
+}
+
+.fc-timeGridWeek-view .fc-timegrid-event .fc-event-title,
+.fc-timeGridWeek-view .fc-timegrid-event .fc-event-time {
+  color: black !important;
+}
+
+.custom-calendar .fc-event {
+  color: black !important;
+}
+
+.fc-timegrid-col.fc-day-sun {
+  background-color: white !important;
+}
+
+

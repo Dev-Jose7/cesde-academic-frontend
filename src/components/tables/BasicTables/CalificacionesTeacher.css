@@ -1,0 +1,94 @@
+.container {
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.titulo {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #d40064;
+}
+
+.controls-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: #ff4081;
+  color: #fff;
+}
+
+.btn-secondary {
+  background-color: #eee;
+  color: #444;
+  transition: 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #dcdcdc;
+}
+
+.select-actividad,
+.input-buscar {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.tabla-calificaciones {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.tabla-calificaciones th,
+.tabla-calificaciones td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eaeaea;
+  text-align: left;
+}
+
+.nota-badge {
+  display: inline-block;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.bg-pink {
+  background-color: #ff4c9a;
+  color: white;
+}
+
+.bg-gray-medium {
+  background-color: #999;
+  color: white;
+}
+
+.bg-gray-light {
+  background-color: #ccc;
+  color: white;
+}
+
+.btn-editar-icono {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
