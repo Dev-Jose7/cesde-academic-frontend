@@ -27,11 +27,7 @@ export default function StackedBarChart() {
 
       const id = JSON.parse(usuario).id;
       try {
-        const response = await fetch(
-          `https://cesde-academic-analytics-production.up.railway.app/estudiantes/${id}/asistencias`
-        );
-        const data = await response.json();
-        console.log("Datos asistencias:", data);
+        
       } catch (error) {
         console.error("Error fetching data:", error);
       }
