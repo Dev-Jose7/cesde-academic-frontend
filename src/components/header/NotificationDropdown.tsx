@@ -41,13 +41,13 @@ export default function NotificationDropdown() {
     setNotifying(false);
   };
 
-  if (!isDocente) {
-    return (
-      <div className="p-4 text-sm text-red-600 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-200 dark:border-red-700">
-        No es accesible las notificaciones con tu usuario.
-      </div>
-    );
-  }
+  // if (!isDocente) {
+  //   return (
+  //     <div className="p-4 text-sm text-red-600 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-200 dark:border-red-700">
+  //       No es accesible las notificaciones con tu usuario.
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="relative">

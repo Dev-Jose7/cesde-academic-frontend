@@ -4,8 +4,9 @@ import { fetchAuth } from "../../utils/fetchAuth";
 
 interface Anuncio {
   id: number;
-  mensaje: string;
-  fechaCreacion?: string; // si tu API devuelve fecha, úsala para ordenar
+  titulo: string,
+  mensaje: string,
+  fecha: string; // si tu API devuelve fecha, úsala para ordenar
 }
 
 export default function Notifications() {

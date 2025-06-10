@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import "./Calificaciones.css";
 import { fetchAuth } from "../../../utils/fetchAuth";
+import { hideLoader, showLoader } from "../../common/Loader";
 
 interface Calificacion {
   id: number;
-  actividad: string;
+  actividad: {
+    id: number;
+    titulo: string;
+    tipo: "TAREA" | "EVALUACION" | "PROYECTO" | "TALLER";
+  };
   estudiante: string;
   fecha: string;
   nota: number;
@@ -12,12 +17,14 @@ interface Calificacion {
   actualizado: string;
 }
 
+
 export default function BasicTableOne() {
   const [calificaciones, setCalificaciones] = useState<Calificacion[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
     const fetchData = async () => {
+      
       const usuario = localStorage.getItem("usuario");
       if (!usuario) {
         alert("No hay información de usuario. Inicia sesión.");
@@ -25,7 +32,9 @@ export default function BasicTableOne() {
         return;
       }
 
+      
       try {
+        showLoader("Cargando...");  
         const user = JSON.parse(usuario);
         const response = await fetchAuth(`/api/calificacion/estudiante/${user.id}`);
 
@@ -42,9 +51,10 @@ export default function BasicTableOne() {
         setCalificaciones(data);
       } catch (err: any) {
         console.error("Error cargando calificaciones:", err.message);
-      } finally {
-        setLoading(false);
+      } finally{
+        hideLoader()
       }
+
     };
 
     fetchData();
@@ -53,37 +63,34 @@ export default function BasicTableOne() {
   return (
     <div className="container">
       <h2 className="title">Calificaciones Académicas</h2>
-
-      {loading ? (
-        <div className="spinner"></div>
-      ) : (
-        <div className="table-wrapper">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Actividad</th>
-                <th>Estudiante</th>
-                <th>Fecha</th>
-                <th>Nota</th>
+      <div className="table-wrapper">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Actividad</th>
+              <th>Estudiante</th>
+              <th>Fecha</th>
+              <th>Nota</th>
+            </tr>
+          </thead>
+          <tbody>
+            {calificaciones.map((item) => (
+              <tr key={item.id}>
+                <td>{item.actividad.titulo} ({item.actividad.tipo})</td>
+                <td>{item.estudiante}</td>
+                <td>{item.fecha}</td>
+                <td>
+                  <span className={`nota-badge ${getNotaColor(item.nota)}`}>
+                    {item.nota.toFixed(1)}
+                  </span>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {calificaciones.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.actividad}</td>
-                  <td>{item.estudiante}</td>
-                  <td>{item.fecha}</td>
-                  <td>
-                    <span className={`nota-badge ${getNotaColor(item.nota)}`}>
-                      {item.nota.toFixed(1)}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            ))}
+          </tbody>
+
+        </table>
+      </div>
+    
     </div>
   );
 }

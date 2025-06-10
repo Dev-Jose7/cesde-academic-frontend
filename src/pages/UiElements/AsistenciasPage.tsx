@@ -140,9 +140,8 @@ const AsistenciasPage: React.FC = () => {
       {!loading && usuario?.tipo === "DOCENTE" && (
   <>
     <CrearAsistencia
-      onNuevaAsistencia={(nueva) => setAsistencias((prev) => [nueva, ...prev])}
     />
-    <ComponentCard title="Asistencias por clase">
+    {/* <ComponentCard title="Asistencias por clase">
       {Object.entries(asistenciasAgrupadas()).map(([nombreClase, items]) => (
         <div
           key={nombreClase}
@@ -183,7 +182,7 @@ const AsistenciasPage: React.FC = () => {
             </ul>
           </div>
         ))}
-      </ComponentCard>
+      </ComponentCard> */}
     </>
     )}
 

@@ -56,7 +56,7 @@ export default function DashboardRoutes() {
           <Route path="calificaciones" element={<BasicTableOneTeacher />} />
           <Route path="asistencias" element={<AsistenciaPage />} />
           <Route path="anuncios" element={<Avatars />} />
-          <Route path="reportes" element={<LineChart />} />
+          {/* <Route path="reportes" element={<LineChart />} /> */}
           <Route path="estadisticas" element={<ChartsDashboard />} />
         </>
       )}

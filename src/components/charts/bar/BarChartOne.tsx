@@ -1,7 +1,38 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 
-export default function BarChartOne() {
+type Calificacion = {
+  nota: number;
+  actividad: {
+    titulo: string;
+  };
+};
+
+type AsistenciaObj = {
+  [fecha: string]: number;
+};
+
+interface BarChartOneProps {
+  data: Calificacion[] | AsistenciaObj;
+}
+
+export default function BarChartOne({ data }: BarChartOneProps) {
+  let categorias: string[] = [];
+  let valores: number[] = [];
+  let yAxisTitle = "";
+
+  if (Array.isArray(data)) {
+    // Es arreglo de calificaciones
+    categorias = data.map((item) => item.actividad.titulo);
+    valores = data.map((item) => parseFloat(item.nota.toFixed(2)));
+    yAxisTitle = "Nota";
+  } else if (typeof data === "object" && data !== null) {
+    // Es objeto de asistencias tipo { "2025-06-10": 1, ... }
+    categorias = Object.keys(data);
+    valores = Object.values(data);
+    yAxisTitle = "Asistencia";
+  }
+
   const options: ApexOptions = {
     colors: ["#465fff"],
     chart: {
@@ -29,20 +60,13 @@ export default function BarChartOne() {
       colors: ["transparent"],
     },
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: categorias,
+      labels: {
+        rotate: -45,
+        style: {
+          fontSize: "10px",
+        },
+      },
       axisBorder: {
         show: false,
       },
@@ -58,8 +82,10 @@ export default function BarChartOne() {
     },
     yaxis: {
       title: {
-        text: undefined,
+        text: yAxisTitle,
       },
+      min: 0,
+      max: yAxisTitle === "Nota" ? 5 : undefined,
     },
     grid: {
       yaxis: {
@@ -71,25 +97,26 @@ export default function BarChartOne() {
     fill: {
       opacity: 1,
     },
-
     tooltip: {
       x: {
-        show: false,
+        show: true,
       },
       y: {
         formatter: (val: number) => `${val}`,
       },
     },
   };
+
   const series = [
     {
-      name: "Sales",
-      data: [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112],
+      name: yAxisTitle,
+      data: valores,
     },
   ];
+
   return (
     <div className="max-w-full overflow-x-auto custom-scrollbar">
-      <div id="chartOne" className="min-w-[1000px]">
+      <div id="chartOne">
         <Chart options={options} series={series} type="bar" height={180} />
       </div>
     </div>
