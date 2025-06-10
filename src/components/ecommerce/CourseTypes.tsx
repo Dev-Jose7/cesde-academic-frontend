@@ -1,4 +1,3 @@
-import React from "react";
 
 const courses = [
   { type: "Presencial", count: 12, icon: (

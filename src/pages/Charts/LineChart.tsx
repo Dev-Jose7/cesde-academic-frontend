@@ -68,7 +68,7 @@ export default function LineChart() {
       <PageBreadcrumb pageTitle="Line Chart" />
       <div className="space-y-6">
         <ComponentCard title="Line Chart 1">
-          <LineChartOne />
+          <LineChartOne data={[]}/>
         </ComponentCard>
       </div>
     </>

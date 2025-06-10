@@ -60,7 +60,7 @@ export default function LineChartOne({ data }: LineChartOneProps) {
     dataLabels: { enabled: false },
     tooltip: {
       enabled: true,
-      custom: ({ series, seriesIndex, dataPointIndex, w }) => {
+      custom: ({ series, seriesIndex, dataPointIndex }) => {
         return `<div style="padding:5px;">
           <strong>${actividades[dataPointIndex]}</strong><br/>
           Fecha: ${categories[dataPointIndex]}<br/>

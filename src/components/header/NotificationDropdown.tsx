@@ -5,7 +5,6 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
-  const [isDocente, setIsDocente] = useState(false);
 
   useEffect(() => {
   try {
@@ -19,9 +18,7 @@ export default function NotificationDropdown() {
         usuario = { tipo: "desconocido" };
       }
 
-      if (usuario.tipo?.toLowerCase() === "docente") {
-        setIsDocente(true);
-      }
+      console.log(usuario)
     }
   } catch (error) {
     console.error("Error al obtener usuario del localStorage:", error);
