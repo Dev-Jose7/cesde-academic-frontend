@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,7 +25,6 @@ export default function StackedBarChart() {
       const usuario = localStorage.getItem("usuario");
       if (!usuario) return;
 
-      const id = JSON.parse(usuario).id;
       try {
         
       } catch (error) {

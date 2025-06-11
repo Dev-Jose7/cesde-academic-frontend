@@ -63,15 +63,6 @@ const AsistenciasPage: React.FC = () => {
     fetchAsistencias();
   }, []);
 
-  const asistenciasAgrupadas = () => {
-    return asistencias.reduce((acc: Record<string, Asistencia[]>, asi) => {
-      const nombreClase = asi.clase?.modulo || "Sin clase";
-      if (!acc[nombreClase]) acc[nombreClase] = [];
-      acc[nombreClase].push(asi);
-      return acc;
-    }, {});
-  };
-
   const agregarAsistencia = async (asistencia: Asistencia) => {
     try {
       const actualizada = { ...asistencia, estado: "ASISTIO" };
@@ -136,6 +127,8 @@ const AsistenciasPage: React.FC = () => {
           ⏳ Buscando asistencias...
         </p>
       )}
+
+      {loading && console.log(renderIconoDerecha)}
 
       {!loading && usuario?.tipo === "DOCENTE" && (
   <>

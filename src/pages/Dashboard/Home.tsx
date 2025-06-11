@@ -1,5 +1,5 @@
 // src/pages/Dashboard/Home.tsx
-import React from "react";
+
 import PageMeta from "../../components/common/PageMeta";
 import { useUser } from "../../context/UserContext";
 import VistaEstudiante from "./VistaEstudiante";
