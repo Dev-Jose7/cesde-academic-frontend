@@ -5,7 +5,6 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
-  const [isDocente, setIsDocente] = useState(false);
 
   useEffect(() => {
   try {
@@ -19,9 +18,7 @@ export default function NotificationDropdown() {
         usuario = { tipo: "desconocido" };
       }
 
-      if (usuario.tipo?.toLowerCase() === "docente") {
-        setIsDocente(true);
-      }
+      console.log(usuario)
     }
   } catch (error) {
     console.error("Error al obtener usuario del localStorage:", error);
@@ -41,13 +38,13 @@ export default function NotificationDropdown() {
     setNotifying(false);
   };
 
-  if (!isDocente) {
-    return (
-      <div className="p-4 text-sm text-red-600 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-200 dark:border-red-700">
-        No es accesible las notificaciones con tu usuario.
-      </div>
-    );
-  }
+  // if (!isDocente) {
+  //   return (
+  //     <div className="p-4 text-sm text-red-600 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-200 dark:border-red-700">
+  //       No es accesible las notificaciones con tu usuario.
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="relative">

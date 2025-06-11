@@ -33,9 +33,10 @@ const getNavItemsByUserType = (tipo: string): NavItem[] => {
         },
         { icon: <TableIcon />, name: "Calificaciones", path: "/dashboard/calificaciones" },
         { icon: <ListIcon />, name: "Asistencias", path: "/dashboard/asistencias" },
-        { icon: <UserCircleIcon />, name: "Actividades", path: "/dashboard/modulos" },
+        { icon: <UserCircleIcon />, name: "Actividades", path: "/dashboard/actividades" },
         { icon: <CalenderIcon />, name: "Horarios", path: "/dashboard/horarios" },
         { icon: <PieChartIcon />, name: "Anuncios", path: "/dashboard/anuncios" },
+        { icon: <PieChartIcon />, name: "Estadísticas", path: "/dashboard/estadisticas" },
       ];
     case "DOCENTE":
       return [
@@ -49,7 +50,7 @@ const getNavItemsByUserType = (tipo: string): NavItem[] => {
         { icon: <TableIcon />, name: "Calificaciones", path: "/dashboard/calificaciones" },
         { icon: <ListIcon />, name: "Asistencias", path: "/dashboard/asistencias" },
         { icon: <PieChartIcon />, name: "Anuncios", path: "/dashboard/anuncios" },
-        { icon: <PieChartIcon />, name: "Reportes", path: "/dashboard/reportes" },
+        { icon: <PieChartIcon />, name: "Estadísticas", path: "/dashboard/estadisticas" },
       ];
     case "ADMINISTRATIVO":
       return [
@@ -63,7 +64,7 @@ const getNavItemsByUserType = (tipo: string): NavItem[] => {
         { icon: <CalenderIcon />, name: "Horario", path: "/dashboard/horario" },
         { icon: <TableIcon />, name: "Clase", path: "/dashboard/clase" },
         { icon: <PieChartIcon />, name: "Anuncios", path: "/dashboard/anuncios" },
-        { icon: <PieChartIcon />, name: "Reportes", path: "/dashboard/reportes" },
+        { icon: <PieChartIcon />, name: "Estadísticas", path: "/dashboard/estadisticas" },
       ];
     case "DIRECTIVO":
       return [

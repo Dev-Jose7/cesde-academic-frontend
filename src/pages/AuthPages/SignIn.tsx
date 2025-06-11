@@ -24,6 +24,7 @@ type SignInProps = {
 };
 
 import { showLoader, hideLoader } from "../../components/common/Loader";
+import { resolveUrl } from '../../utils/fetchAuth';
 
 
 
@@ -42,9 +43,10 @@ export default function SignIn({ onLogin }: SignInProps) {
     setMensaje(null);
     setError(null);
     showLoader("Iniciando sesión");
+    let endpoint = resolveUrl('/api/auth/login') || ""
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

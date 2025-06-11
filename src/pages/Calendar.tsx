@@ -4,13 +4,11 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import "./Calendar.css";
-import { useModal } from "../hooks/useModal";
+import { fetchAuth } from "../utils/fetchAuth";
+import { Usuario } from "../context/UserContext";
 
-// Interfaces
 interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
@@ -18,16 +16,29 @@ interface CalendarEvent extends EventInput {
     docente?: string;
     modulo?: string;
     dia?: string;
+    horaInicio?: string;
+    horaFin?: string;
   };
 }
 
-// Mapeos y constantes
-const calendarsEvents = {
-  Danger: "Prioridad alta",
-  Success: "Prioridad baja",
-  Primary: "Prioridad media",
-  Warning: "Prioridad 100%",
-};
+export interface GrupoEstudiante {
+  grupoId: number;
+  estudianteId: string;
+}
+
+export interface Clase {
+  id: number;
+  grupo: string;
+  docente: string;
+  modulo: string;
+}
+
+export interface ClaseHorario {
+  clase: string;
+  dia: string;
+  horaInicio: string;
+  horaFin: string;
+}
 
 const dayMap: Record<string, number> = {
   DOMINGO: 0,
@@ -40,300 +51,168 @@ const dayMap: Record<string, number> = {
 };
 
 const renderEventContent = (eventInfo: any) => {
-  const calendarLevel =
-    eventInfo.event.extendedProps?.calendar?.toLowerCase() || "primary";
-  const colorClass = `fc-bg-${calendarLevel}`;
-  const { grupo, docente, modulo } = eventInfo.event.extendedProps;
-
+  const { docente, horaInicio, horaFin } = eventInfo.event.extendedProps;
   return (
-    <div className={`p-1 rounded ${colorClass}`}>
-      <div className="font-bold text-sm">{eventInfo.timeText}</div>
-      <div className="text-xs">{eventInfo.event.title}</div>
-      <div className="text-[10px]">Módulo: {modulo}</div>
-      <div className="text-[10px]">Grupo: {grupo}</div>
+    <div className="p-1 rounded">
+      <div className="text-sm font-semibold text-black break-words whitespace-normal">
+        {eventInfo.event.title}
+      </div>
+      <div className="text-xs font-medium text-black break-words whitespace-normal">
+        Docente: {docente}
+      </div>
+      <div className="text-xs text-black break-words whitespace-normal">
+        {horaInicio} - {horaFin}
+      </div>
     </div>
   );
 };
 
 const Calendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventStartDate, setEventStartDate] = useState("");
-  const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("Primary");
-
+  const [isLoading, setIsLoading] = useState(true);
+  const [calendarLoading, setCalendarLoading] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
-  const { isOpen, openModal, closeModal } = useModal();
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          alert("No hay token de autenticación. Por favor, inicia sesión.");
-          return;
-        }
+        const usuarioStorage = localStorage.getItem("usuario");
+        if (!usuarioStorage) return;
 
-        // Usa la ruta proxy configurada en vite.config.ts ("/api/clase/lista")
-        const response = await fetch("/api/clase/lista", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const usuario: Usuario = JSON.parse(usuarioStorage);
+        let eventosTotales: CalendarEvent[] = [];
 
-        if (!response.ok) {
-          throw new Error(
-            `Error HTTP ${response.status}: ${response.statusText || "Error"}`
-          );
-        }
+        if (usuario.tipo === "ESTUDIANTE") {
+          const grupoEstudianteResponse = await fetchAuth(`/api/grupo-estudiante/estudiante/${usuario.id}`);
+          const grupoEstudianteData: GrupoEstudiante[] = await grupoEstudianteResponse.json();
 
-        const data = await response.json();
+          for (const grupo of grupoEstudianteData) {
+            const claseResponse = await fetchAuth(`/api/clase/grupo/${grupo.grupoId}`);
+            const claseData: Clase[] = await claseResponse.json();
 
-        // Obtener usuario para filtrar clases por docente
-        const usuarioString = localStorage.getItem("usuario");
-        if (!usuarioString) return;
-        const usuario = JSON.parse(usuarioString);
+            for (const clase of claseData) {
+              const horarioResponse = await fetchAuth(`/api/clase-horario/clase/${clase.id}`);
+              const horarios: ClaseHorario[] = await horarioResponse.json();
 
-        // Filtrar clases según docente que esté en localStorage.usuario.nombre
-        const filteredClasses = data.filter(
-          (item: any) =>
-            item.docente?.toUpperCase() === usuario.nombre.toUpperCase()
-        );
+              const eventos = horarios.map((horario) => ({
+                id: `${clase.id}-${horario.dia}-${horario.horaInicio}`,
+                title: horario.clase,
+                daysOfWeek: [dayMap[horario.dia.toUpperCase()] ?? 0],
+                startTime: horario.horaInicio,
+                endTime: horario.horaFin,
+                startRecur: "2025-01-01",
+                endRecur: "2025-12-31",
+                extendedProps: {
+                  calendar: "Academico",
+                  grupo: clase.grupo,
+                  docente: clase.docente,
+                  modulo: clase.modulo,
+                  dia: horario.dia,
+                  horaInicio: horario.horaInicio,
+                  horaFin: horario.horaFin,
+                },
+              }));
 
-        // Por cada clase traer sus horarios
-        const horariosPorClase = await Promise.all(
-          filteredClasses.map(async (clase: any) => {
-            const res = await fetch(`/api/clase-horario/clase/${clase.id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (!res.ok) {
-              throw new Error(
-                `Error HTTP ${res.status}: ${res.statusText || "Error"}`
-              );
+              eventosTotales = eventosTotales.concat(eventos);
             }
+          }
+        }
 
-            const horarios = await res.json();
+        if (usuario.tipo === "DOCENTE") {
+          const claseResponse = await fetchAuth(`/api/clase/docente/${usuario.id}`);
+          const clases: Clase[] = await claseResponse.json();
 
-            // Mapea los horarios con información de la clase
-            return horarios.map((horario: any) => ({
-              ...horario,
-              claseNombre: clase.nombre,
-              grupo: clase.grupo,
-              docente: clase.docente,
-              modulo: clase.modulo,
+          for (const clase of clases) {
+            const horarioResponse = await fetchAuth(`/api/clase-horario/clase/${clase.id}`);
+            const horarios: ClaseHorario[] = await horarioResponse.json();
+
+            const eventos = horarios.map((horario) => ({
+              id: `${clase.id}-${horario.dia}-${horario.horaInicio}`,
+              title: horario.clase,
+              daysOfWeek: [dayMap[horario.dia.toUpperCase()] ?? 0],
+              startTime: horario.horaInicio,
+              endTime: horario.horaFin,
+              startRecur: "2025-01-01",
+              endRecur: "2025-12-31",
+              extendedProps: {
+                calendar: "Academico",
+                grupo: clase.grupo,
+                docente: clase.docente,
+                modulo: clase.modulo,
+                dia: horario.dia,
+                horaInicio: horario.horaInicio,
+                horaFin: horario.horaFin,
+              },
             }));
-          })
-        );
 
-        // Aplanar el array para tener todos los horarios juntos
-        const todosLosHorarios = horariosPorClase.flat();
+            eventosTotales = eventosTotales.concat(eventos);
+          }
+        }
 
-        // Mapear a eventos para FullCalendar
-        const mappedEvents: CalendarEvent[] = todosLosHorarios.map((item: any) => {
-          const diaSemana = dayMap[item.dia?.toUpperCase()] ?? 0;
-
-          return {
-            id: item.id?.toString(),
-            title: item.claseNombre || "Clase",
-            daysOfWeek: [diaSemana],
-            startTime: item.horaInicio,
-            endTime: item.horaFin,
-            startRecur: "2025-01-01",
-            endRecur: "2025-12-31",
-            extendedProps: {
-              calendar: "Academico",
-              grupo: item.grupo,
-              docente: item.docente,
-              modulo: item.modulo,
-              dia: item.dia,
-            },
-          };
-        });
-
-        setEvents(mappedEvents);
-      } catch (error: any) {
-        console.error("Error cargando eventos:", error.message || error);
-        alert(
-          `No se pudieron cargar los eventos. ${error.message || "Error desconocido"}`
-        );
+        setEvents(eventosTotales);
+      } catch (error) {
+        console.error("Error al cargar eventos:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchEvents();
   }, []);
 
-  // Limpia campos modal
-  const resetModalFields = () => {
-    setEventTitle("");
-    setEventStartDate("");
-    setEventEndDate("");
-    setEventLevel("Primary");
-    setSelectedEvent(null);
-  };
+  const handleDateSelect = (_: DateSelectArg) => {};
+  const handleEventClick = (_: EventClickArg) => {};
 
-  // Selección rango fecha en calendario
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
-    resetModalFields();
-    setEventStartDate(selectInfo.startStr);
-    setEventEndDate(selectInfo.endStr || selectInfo.startStr);
-    openModal();
-  };
-
-  // Click en evento existente
-  const handleEventClick = (clickInfo: EventClickArg) => {
-    const event = clickInfo.event;
-    setSelectedEvent({
-      id: event.id,
-      title: event.title || "",
-      start: event.start?.toISOString(),
-      end: event.end?.toISOString(),
-      extendedProps: {
-        calendar: event.extendedProps?.calendar || "Primary",
-      },
-    });
-
-    setEventTitle(event.title || "");
-    setEventStartDate(event.start?.toISOString().split("T")[0] || "");
-    setEventEndDate(event.end?.toISOString().split("T")[0] || "");
-    setEventLevel(event.extendedProps?.calendar || "Primary");
-    openModal();
-  };
-
-  // Agregar o actualizar evento desde modal
-  const handleAddOrUpdateEvent = () => {
-    if (!eventTitle) {
-      alert("El título es obligatorio");
-      return;
-    }
-
-    const newEvent: CalendarEvent = {
-      id: selectedEvent?.id || Date.now().toString(),
-      title: eventTitle,
-      start: eventStartDate,
-      end: eventEndDate,
-      allDay: true,
-      extendedProps: { calendar: eventLevel },
-    };
-
-    setEvents((prev) =>
-      selectedEvent
-        ? prev.map((e) => (e.id === selectedEvent.id ? newEvent : e))
-        : [...prev, newEvent]
-    );
-
-    closeModal();
-    resetModalFields();
+  // Opcional: si quieres puedes controlar loading interno del calendario:
+  const handleLoading = (isLoadingCalendar: boolean) => {
+    setCalendarLoading(isLoadingCalendar);
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-      <div className="custom-calendar">
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          locale={esLocale}
-          headerToolbar={{
-            left: "prev,next addEventButton",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek",
-          }}
-          events={events}
-          selectable
-          select={handleDateSelect}
-          eventClick={handleEventClick}
-          eventContent={renderEventContent}
-          customButtons={{
-            addEventButton: {
-              text: "Agregar Reunión Personal +",
-              click: () => {
-                resetModalFields();
-                openModal();
-              },
-            },
-          }}
-        />
-      </div>
-
-      {isOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]"
-          onClick={() => {
-            closeModal();
-            resetModalFields();
-          }}
-        >
-          <div
-            className="bg-white rounded-lg p-6 max-w-lg w-full shadow-lg z-[10000]"
-            onClick={(e) => e.stopPropagation()}
+    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] min-h-[400px] flex items-center justify-center">
+      {isLoading || calendarLoading ? (
+        <div className="flex flex-col items-center space-y-3">
+          <svg
+            className="animate-spin h-10 w-10 text-pink-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
           >
-            <h2 className="text-xl font-semibold mb-4">
-              {selectedEvent ? "Editar Evento" : "Nuevo Evento"}
-            </h2>
-
-            <label className="block mb-2 font-medium">Título</label>
-            <input
-              type="text"
-              className="border rounded p-2 w-full mb-4"
-              value={eventTitle}
-              onChange={(e) => setEventTitle(e.target.value)}
-              placeholder="Escribe el título"
-            />
-
-            <label className="block mb-2 font-medium">Fecha inicio</label>
-            <DatePicker
-              selected={eventStartDate ? new Date(eventStartDate) : null}
-              onChange={(date: Date | null) =>
-                date && setEventStartDate(date.toISOString().split("T")[0])
-              }
-              dateFormat="yyyy-MM-dd"
-              className="border rounded p-2 w-full mb-4"
-            />
-
-            <label className="block mb-2 font-medium">Fecha fin</label>
-            <DatePicker
-              selected={eventEndDate ? new Date(eventEndDate) : null}
-              onChange={(date: Date | null) =>
-                date && setEventEndDate(date.toISOString().split("T")[0])
-              }
-              dateFormat="yyyy-MM-dd"
-              className="border rounded p-2 w-full mb-4"
-            />
-
-            <label className="block mb-2 font-medium">Prioridad</label>
-            <select
-              className="border rounded p-2 w-full mb-4"
-              value={eventLevel}
-              onChange={(e) => setEventLevel(e.target.value)}
-            >
-              {Object.entries(calendarsEvents).map(([key, label]) => (
-                <option key={key} value={key}>
-                  {label}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex justify-end space-x-4">
-              <button
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                onClick={() => {
-                  closeModal();
-                  resetModalFields();
-                }}
-              >
-                Cancelar
-              </button>
-
-              <button
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                onClick={handleAddOrUpdateEvent}
-              >
-                {selectedEvent ? "Actualizar" : "Agregar"}
-              </button>
-            </div>
-          </div>
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
+          <p className="text-gray-600 font-semibold text-lg">Cargando calendario...</p>
+        </div>
+      ) : (
+        <div className="custom-calendar w-full">
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            locale={esLocale}
+            headerToolbar={{
+              left: "prev,next",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek",
+            }}
+            events={events}
+            selectable
+            select={handleDateSelect}
+            eventClick={handleEventClick}
+            eventContent={renderEventContent}
+            loading={handleLoading} 
+          />
         </div>
       )}
     </div>
@@ -341,5 +220,7 @@ const Calendar: React.FC = () => {
 };
 
 export default Calendar;
+
+
 
 

@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
           </button>
           <button
             onClick={onClick}
-            className="items-center justify-center hidden w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+            className="items-center justify-center hidden w-10 h-10 text-gray-500 border-gray-200 rounded-lg dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
           >
             <svg
               className="hidden fill-current lg:block"
@@ -81,12 +81,12 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
           <Link to="/" className="lg:hidden">
             <img
               className="dark:hidden"
-              src="../../assets/images/logo-Cesde-2023.svg"
+              src="/images/logo-Cesde-2023.svg"
               alt="Logo"
             />
             <img
               className="hidden dark:block"
-              src="../../assets/images/logo-Cesde-2023.svg"
+              src="/images/logo-Cesde-2023.svg"
               alt="Logo"
             />
           </Link>
