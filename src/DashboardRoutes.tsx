@@ -7,7 +7,6 @@ import UserProfiles from "./pages/UserProfiles";
 import Calendar from "./pages/Calendar";
 import ChartsDashboard from "./pages/Charts/ChartsDashboard";
 import ActividadesPanelEstudent from "./pages/UiElements/ActividadesPanelEstudent";
-import FormElements from "./pages/Forms/FormElements";
 import BasicTables from "./pages/Tables/BasicTables";
 import AsistenciaPage from "./pages/UiElements/AsistenciasPage";
 import Avatars from "./pages/UiElements/AnunciosList";
@@ -18,7 +17,9 @@ import Images from "./pages/UiElements/Images";
 import ActividadesPanel from "./pages/UiElements/ActividadesPanel";
 import BarChart from "./pages/Charts/BarChart";
 import AnunciosList from "./pages/UiElements/AnunciosList";
-
+import UsuariosPorTipo from "./pages/UiElements/UsuariosPorTipo";
+import GruposList from "./pages/UiElements/GrupoList";
+import AnalyticsDashboard from "./pages/UiElements/AnalyticsDashboard";
 
 export default function DashboardRoutes() {
   const { usuario } = useUser();
@@ -60,10 +61,9 @@ export default function DashboardRoutes() {
       {/* Administrativo */}
       {usuario.tipo === "ADMINISTRATIVO" && (
         <>
-          <Route path="usuarios" element={<UserProfiles />} />
-          <Route path="grupos" element={<BasicTables />} />
-          <Route path="horario" element={<Calendar />} />
-          <Route path="clase" element={<FormElements />} />
+          <Route path="usuarios" element={<UsuariosPorTipo />} />
+          <Route path="grupos" element={<GruposList />} />
+          <Route path="analiticasusuarios" element={<AnalyticsDashboard />} />
           <Route path="anuncios" element={<Avatars />} />
           <Route path="reportes" element={<BarChart />} />
           <Route path="estadisticas" element={<ChartsDashboard />} />
@@ -77,7 +77,6 @@ export default function DashboardRoutes() {
           <Route path="programas" element={<ManagementPrograms />} />
           <Route path="modulos" element={<Images />} />
           <Route path="anuncios" element={<Avatars />} />
-          <Route path="reportes" element={<BarChart />} />
           <Route path="estadisticas" element={<ChartsDashboard />} />
         </>
       )}

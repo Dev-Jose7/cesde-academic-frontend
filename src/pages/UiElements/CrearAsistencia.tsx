@@ -267,13 +267,13 @@ const AsistenciasProfesor: React.FC = () => {
     <div className="p-6 bg-white rounded-2xl shadow border">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold text-gray-900">Gestión de Asistencias</h1>
-        <Button
+        <button
           onClick={openModalNueva}
-          className="flex items-center gap-2 bg-[#ed2e91] hover:bg-[#d01b7f]"
+          className="flex items-center gap-2 bg-[#ed2e91] hover:bg-[#d01b7f] text-white px-4 py-2 rounded-md"
         >
           <FiPlus />
           Nueva Asistencia
-        </Button>
+        </button>
       </div>
 
       {loading ? (
