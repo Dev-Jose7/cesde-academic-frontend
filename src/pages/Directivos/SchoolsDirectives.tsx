@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa";
 import { GiChefToque } from "react-icons/gi";
 import { fetchAuth } from "../../utils/fetchAuth";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 interface Escuela {
   id: number;
@@ -33,7 +34,6 @@ async function fetchAuthJson<T>(url: string, options: RequestInit = {}): Promise
 
 export default function EscuelasPanel() {
   const [escuelas, setEscuelas] = useState<Escuela[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // Estado modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -43,15 +43,15 @@ export default function EscuelasPanel() {
 
   // Fetch escuelas
   const fetchEscuelas = async () => {
-    setLoading(true);
     try {
+      showLoader("Cargando escuelas...")
       const data = await fetchAuthJson<Escuela[]>("/api/escuela/lista");
       if (Array.isArray(data)) setEscuelas(data);
     } catch (error) {
       console.error("Error al obtener escuelas:", error);
       setEscuelas([]);
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -85,6 +85,7 @@ export default function EscuelasPanel() {
     try {
       if (currentEscuela) {
         // Editar (PUT)
+        showLoader("Editando escuela...")
         const res = await fetchAuth(`/api/escuela/editar/${currentEscuela.id}`, {
           method: "PUT",
           body: JSON.stringify({ nombre: nombreInput.trim() }),
@@ -93,6 +94,7 @@ export default function EscuelasPanel() {
         if (!res.ok) throw new Error("Error actualizando escuela");
       } else {
         // Crear (POST)
+        showLoader("Creando escuela...")
         const res = await fetchAuth(`/api/escuela/crear`, {
           method: "POST",
           body: JSON.stringify({ nombre: nombreInput.trim() }),
@@ -106,6 +108,8 @@ export default function EscuelasPanel() {
     } catch (error) {
       alert("Hubo un error al guardar la escuela. Intenta nuevamente.");
       console.error(error);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -113,12 +117,15 @@ export default function EscuelasPanel() {
   const handleEliminar = async (id: number) => {
     if (!confirm("¿Estás seguro de eliminar esta escuela?")) return;
     try {
+      showLoader("Eliminando escuela...")
       const res = await fetchAuth(`/api/escuela/remover/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Error eliminando escuela");
       setEscuelas((prev) => prev.filter((esc) => esc.id !== id));
     } catch (error) {
       alert("No se pudo eliminar la escuela. Intenta nuevamente.");
       console.error(error);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -134,12 +141,6 @@ export default function EscuelasPanel() {
           Crear Escuela
         </button>
       </div>
-
-      {loading && (
-        <p className="text-center text-sm text-gray-500 mb-4">
-          Actualizando datos desde el servidor...
-        </p>
-      )}
 
       <table className="w-full text-left text-gray-700 text-sm border-collapse">
         <thead>
@@ -179,19 +180,26 @@ export default function EscuelasPanel() {
                 </td>
               </tr>
             ))
-          ) : !loading ? (
+          )  : 
             <tr>
               <td colSpan={3} className="text-center py-6 text-gray-500">
                 No hay escuelas disponibles
               </td>
-            </tr>
-          ) : null}
+            </tr>}
         </tbody>
       </table>
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(255,255,255,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 10000,
+          }}>
           <div className="bg-white rounded-lg p-6 w-96 shadow-lg relative">
             <h3 className="text-xl font-semibold mb-4">{modalTitle}</h3>
             <input

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchAuth } from "../../../utils/fetchAuth";
 import "./CalificacionesTeacher.css";
 import { FiEdit, FiTrash } from "react-icons/fi";
+import { hideLoader, showLoader } from "../../common/Loader";
 
 interface Calificacion {
   id: number;
@@ -73,7 +74,7 @@ export default function BasicTableOneTeacher() {
 
   const recargarCalificaciones = async () => {
     try {
-      
+      showLoader("Cargando calificaciones");
       const usuarioStorage = localStorage.getItem("usuario");
       if (!usuarioStorage) return;
       const usuario = JSON.parse(usuarioStorage);
@@ -135,6 +136,8 @@ export default function BasicTableOneTeacher() {
       setCalificaciones(todasCalificaciones);
     } catch (error) {
       console.error("Error recargando calificaciones:", error);
+    } finally {
+      hideLoader();
     }
   };
   
@@ -167,6 +170,7 @@ export default function BasicTableOneTeacher() {
     };
 
     try {
+      showLoader("Creando calificación...");
       const res = await fetchAuth("/api/calificacion/crear", {
         method: "POST",
         body: JSON.stringify(body),
@@ -191,10 +195,12 @@ export default function BasicTableOneTeacher() {
         nueva.estudiante = estudiante.nombre;
       }
 
-      await recargarCalificaciones();
       cerrarModalCrear();
+      await recargarCalificaciones();
     } catch (err) {
       console.error("Error creando calificación", err);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -237,6 +243,7 @@ export default function BasicTableOneTeacher() {
     };
 
     try {
+      showLoader("Editando calificacion...")
       const res = await fetchAuth(`/api/calificacion/editar/${calificacionSeleccionada.id}`, {
         method: "PUT",
         body: JSON.stringify(body),
@@ -247,10 +254,12 @@ export default function BasicTableOneTeacher() {
         return;
       }
 
-      await recargarCalificaciones();
       cerrarModalEditar();
+      await recargarCalificaciones();
     } catch (err) {
       console.error("Error editando calificación", err);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -268,6 +277,7 @@ export default function BasicTableOneTeacher() {
     if (!calificacionSeleccionada) return;
 
     try {
+      showLoader("Eliminando calificación...")
       const res = await fetchAuth(`/api/calificacion/remover/${calificacionSeleccionada.id}`, {
         method: "DELETE",
       });
@@ -275,10 +285,13 @@ export default function BasicTableOneTeacher() {
         alert("Error al eliminar calificación");
         return;
       }
-      await recargarCalificaciones();
+
       cerrarModalEliminar();
+      await recargarCalificaciones();
     } catch (err) {
       console.error("Error eliminando calificación", err);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -404,7 +417,7 @@ export default function BasicTableOneTeacher() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 9999,
+            zIndex: 10000,
           }}
           onClick={cerrarModalCrear}
         >
@@ -500,7 +513,7 @@ export default function BasicTableOneTeacher() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 9999,
+            zIndex: 10000,
           }}
           onClick={cerrarModalEditar}
         >
@@ -569,7 +582,7 @@ export default function BasicTableOneTeacher() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 9999,
+            zIndex: 10000,
           }}
           onClick={cerrarModalEliminar}
         >

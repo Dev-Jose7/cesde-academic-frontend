@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { fetchAuth } from "../../utils/fetchAuth";
-import Button from "../../components/ui/button/Button";
 import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 interface ClaseInfo {
   grupo: string;
@@ -46,7 +46,6 @@ const AsistenciasProfesor: React.FC = () => {
   const [clases, setClases] = useState<Clase[]>([]);
   const [estudiantes, setEstudiantes] = useState<Estudiante[]>([]);
   const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // Modal para crear/editar
   const [modalOpen, setModalOpen] = useState(false);
@@ -77,13 +76,14 @@ const AsistenciasProfesor: React.FC = () => {
   }, []);
 
   const cargarAsistenciasDocente = async () => {
-    setLoading(true);
     try {
       const usuarioStorage = localStorage.getItem("usuario");
       if (!usuarioStorage) return;
       const usuario = JSON.parse(usuarioStorage);
 
       // Obtener clases del docente
+      
+      showLoader("Cargando asistencias...")
       const claseResp = await fetchAuth(`/api/clase/docente/${usuario.id}`);
       if (!claseResp.ok) throw new Error("Error cargando clases");
       const claseData: Clase[] = await claseResp.json();
@@ -132,7 +132,7 @@ const AsistenciasProfesor: React.FC = () => {
       console.error("Error cargando asistencias:", error);
       alert("Error al cargar las asistencias. Intenta nuevamente.");
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -197,12 +197,8 @@ const AsistenciasProfesor: React.FC = () => {
       }
 
       const payload = {
-        clase: {
-          grupo: claseSeleccionada.grupo,
-          docente: claseSeleccionada.docente,
-          modulo: claseSeleccionada.modulo,
-        },
-        estudiante: estudianteSeleccionado.nombre,
+        claseId: claseSeleccionada.id,
+        estudianteId: estudianteSeleccionado.id,
         fecha: form.fecha,
         estado: form.estado,
       };
@@ -210,12 +206,14 @@ const AsistenciasProfesor: React.FC = () => {
       let res: Response;
 
       if (form.id === 0) {
+        showLoader("Creando asistencia...")
         res = await fetchAuth("/api/asistencia/crear", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
       } else {
+        showLoader("Editando asistencia...")
         res = await fetchAuth(`/api/asistencia/editar/${form.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -233,6 +231,7 @@ const AsistenciasProfesor: React.FC = () => {
     } catch (error: any) {
       setModalError(error.message || "Error desconocido");
     } finally {
+      hideLoader();
       setModalLoading(false);
     }
   };
@@ -248,6 +247,7 @@ const AsistenciasProfesor: React.FC = () => {
 
     setDeleteLoading(true);
     try {
+      showLoader("Eliminando asistencias...");
       const res = await fetchAuth(`/api/asistencia/remover/${deleteId}`, {
         method: "DELETE",
       });
@@ -259,6 +259,7 @@ const AsistenciasProfesor: React.FC = () => {
     } catch (error) {
       alert("No se pudo eliminar la asistencia.");
     } finally {
+      hideLoader();
       setDeleteLoading(false);
     }
   };
@@ -276,9 +277,7 @@ const AsistenciasProfesor: React.FC = () => {
         </button>
       </div>
 
-      {loading ? (
-        <p>Cargando asistencias...</p>
-      ) : asistencias.length === 0 ? (
+      {asistencias.length === 0 ? (
         <p>No hay asistencias registradas.</p>
       ) : (
         <table className="w-full border-collapse border border-gray-300">

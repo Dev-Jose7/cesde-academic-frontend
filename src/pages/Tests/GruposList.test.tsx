@@ -1,16 +1,13 @@
-import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import GruposList from "../UiElements/GrupoList";
 import * as fetchAuthModule from "../../utils/fetchAuth";
 
-// Mockeamos el módulo
-vi.mock("../../utils/fetchAuth", () => ({
-  fetchAuth: vi.fn(),
-}));
+// Mock del módulo
+vi.mock("../../utils/fetchAuth");
 
-// Forzamos el tipo de fetchAuth como vi.fn()
-const mockedFetchAuth = fetchAuthModule.fetchAuth as unknown as ReturnType<typeof vi.fn>;
+// Acceder al mock correctamente
+const mockedFetchAuth = fetchAuthModule.fetchAuth as unknown as jest.Mock;
 
 describe("GruposList", () => {
   beforeEach(() => {
@@ -32,10 +29,9 @@ describe("GruposList", () => {
 
     render(<GruposList />);
 
+    // Esperar a que aparezca el grupo
     await waitFor(() => {
-      expect(screen.queryByText("GRP101")).not.toBeNull();
+      expect(screen.getByText("GRP101")).toBeInTheDocument();
     });
   });
 });
-
-

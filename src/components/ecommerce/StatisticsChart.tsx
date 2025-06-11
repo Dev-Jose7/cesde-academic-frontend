@@ -3,6 +3,7 @@ import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import { fetchAuth } from "../../utils/fetchAuth";
+import { hideLoader, showLoader } from "../common/Loader";
 
 type Anuncio = {
   id: number;
@@ -30,6 +31,7 @@ export default function StatisticsChart() {
   useEffect(() => {
     const cargarAnuncios = async () => {
       try {
+        showLoader("Cargando anuncios")
         const response = await fetchAuth("/api/anuncio/lista", { method: "GET" });
 
         if (response.ok) {
@@ -40,6 +42,8 @@ export default function StatisticsChart() {
         }
       } catch (err) {
         console.error("Error inesperado:", err);
+      } finally {
+        hideLoader();
       }
     };
 

@@ -5,6 +5,7 @@ import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { FiUploadCloud } from "react-icons/fi";
 import { FaTasks } from "react-icons/fa";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 interface Clase {
   id: number;
@@ -30,7 +31,6 @@ interface GrupoEstudiante {
 const ActividadesPanelEstudent = () => {
   const [usuario, setUsuario] = useState<any>(null);
   const [actividades, setActividades] = useState<Actividad[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("usuario");
@@ -46,8 +46,8 @@ const ActividadesPanelEstudent = () => {
   }, [usuario]);
 
   const obtenerActividades = async () => {
-    setIsLoading(true);
     try {
+      showLoader("Cargando actividades...")
       // 1. Obtener grupos del estudiante
       const grupoEstudianteResp = await fetchAuth(
         `/api/grupo-estudiante/estudiante/${usuario.id}`
@@ -78,17 +78,9 @@ const ActividadesPanelEstudent = () => {
     } catch (error) {
       console.error("Error al obtener actividades:", error);
     } finally {
-      setIsLoading(false);
+      hideLoader();
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="text-center p-10">
-        <p>Cargando actividades...</p>
-      </div>
-    );
-  }
 
   return (
     <>

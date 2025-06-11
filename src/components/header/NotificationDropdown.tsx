@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { fetchAuth } from "../../utils/fetchAuth";
+import { hideLoader, showLoader } from "../common/Loader";
 
 interface Anuncio {
   id: number;
@@ -36,6 +37,7 @@ export default function NotificationDropdown() {
 
   const obtenerAnuncios = async (usuario: any) => {
     try {
+      showLoader("Cargando...")
       const res = await fetchAuth("api/anuncio/lista");
       const data: Anuncio[] = await res.json();
 
@@ -50,6 +52,8 @@ export default function NotificationDropdown() {
       }
     } catch (error) {
       console.error("Error al obtener anuncios:", error);
+    } finally {
+      hideLoader();
     }
   };
 

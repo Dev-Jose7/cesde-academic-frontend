@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { fetchAuth } from "../../utils/fetchAuth";
+import { hideLoader, showLoader } from "../common/Loader";
 
 interface Anuncio {
   id: number;
@@ -11,11 +12,11 @@ interface Anuncio {
 
 export default function Notifications() {
   const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const obtenerAnuncios = async () => {
       try {
+        showLoader("Cargando notificaciones");
         const res = await fetchAuth("/api/anuncio/lista");
         const data: Anuncio[] = await res.json();
 
@@ -28,7 +29,7 @@ export default function Notifications() {
       } catch (error) {
         console.error("Error al cargar los anuncios:", error);
       } finally {
-        setLoading(false);
+        hideLoader();
       }
     };
 
@@ -42,9 +43,7 @@ export default function Notifications() {
         <h2 className="text-xl font-semibold text-gray-800">Notificaciones</h2>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-gray-500">Cargando anuncios...</p>
-      ) : anuncios.length === 0 ? (
+      {anuncios.length === 0 ? (
         <p className="text-sm text-gray-500">No hay notificaciones.</p>
       ) : (
         <ul className="space-y-3 text-gray-700 text-sm">

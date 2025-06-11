@@ -6,6 +6,7 @@ import { FiPlusCircle, FiTrash2 } from 'react-icons/fi';
 import { FaTasks } from 'react-icons/fa';
 import ReactDatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { showLoader, hideLoader } from '../../components/common/Loader';
 
 interface Clase {
   id: number;
@@ -63,6 +64,7 @@ const ActividadesPanel = () => {
 
   const obtenerClasesDocente = async () => {
     try {
+      showLoader("Cargando clases...");
       const res = await fetchAuth(`/api/clase/docente/${usuario.id}`);
       if (res.ok) {
         const data: Clase[] = await res.json();
@@ -71,11 +73,14 @@ const ActividadesPanel = () => {
       }
     } catch (err) {
       console.error('Error al obtener clases del docente', err);
+    } finally {
+      hideLoader();
     }
   };
 
   const obtenerActividades = async () => {
     try {
+      showLoader("Cargando actividades...")
       const res = await fetchAuth('/api/actividad/lista');
       if (res.ok) {
         const data: Actividad[] = await res.json();
@@ -86,6 +91,8 @@ const ActividadesPanel = () => {
       }
     } catch (err) {
       console.error('Error al obtener actividades', err);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -104,6 +111,7 @@ const ActividadesPanel = () => {
     };
 
     try {
+      showLoader("Creando actividades...")
       const res = await fetchAuth('/api/actividad/crear', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -122,17 +130,22 @@ const ActividadesPanel = () => {
     } catch (err) {
       console.error('Error al crear actividad', err);
       alert('Error al crear actividad');
+    } finally {
+      hideLoader();
     }
   };
 
   const eliminarActividad = async (id: number) => {
     try {
+      showLoader("Eliminando actividades...")
       const res = await fetchAuth(`/api/actividad/remover/${id}`, { method: 'DELETE' });
       if (res.ok) obtenerActividades();
       else alert('No se pudo eliminar la actividad');
     } catch (err) {
       console.error('Error al eliminar actividad', err);
       alert('Error al eliminar actividad');
+    } finally {
+      hideLoader();
     }
   };
 

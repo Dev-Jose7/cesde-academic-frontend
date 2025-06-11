@@ -4,6 +4,7 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { useUser } from "../../context/UserContext"; // Asegúrate que la ruta es correcta
 import { fetchAuth } from "../../utils/fetchAuth";
+import { hideLoader, showLoader } from "../common/Loader";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,6 +42,7 @@ export default function UserDropdown() {
     const refreshToken = localStorage.getItem("refreshToken") || null;
   
     try {
+      showLoader("Cerrando sesion...")
       await fetchAuth("/api/auth/logout", {
         method: "POST",
         body: JSON.stringify({ refreshToken: refreshToken }),
@@ -53,6 +55,7 @@ export default function UserDropdown() {
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("usuario");
       setUsuario(null);
+      hideLoader()
       navigate("/signin");
     }
   }  

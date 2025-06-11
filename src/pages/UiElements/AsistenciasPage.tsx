@@ -5,6 +5,7 @@ import { fetchAuth } from "../../utils/fetchAuth";
 import { Usuario } from "../../context/UserContext";
 import { FiCheck, FiEdit, FiCheckCircle } from "react-icons/fi";
 import CrearAsistencia from "./CrearAsistencia";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 
 interface Clase {
@@ -24,12 +25,11 @@ interface Asistencia {
 const AsistenciasPage: React.FC = () => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAsistencias = async () => {
       const usuarioStorage = localStorage.getItem("usuario");
-      if (!usuarioStorage) return setLoading(false);
+      if (!usuarioStorage) return 
 
       const user: Usuario = JSON.parse(usuarioStorage);
       setUsuario(user);
@@ -37,15 +37,8 @@ const AsistenciasPage: React.FC = () => {
       try {
         let asistenciasData: Asistencia[] = [];
 
-        if (user.tipo === "DOCENTE") {
-          const res = await fetchAuth("/api/asistencia/lista");
-          if (!res.ok) throw new Error(`Error al obtener asistencias. Código: ${res.status}`);
+        if (user.tipo === "ESTUDIANTE") {
 
-          const allAsistencias: Asistencia[] = await res.json();
-          asistenciasData = allAsistencias.filter(
-            (a) => a?.clase?.docente?.toLowerCase() === user.nombre.toLowerCase()
-          );
-        } else if (user.tipo === "ESTUDIANTE") {
           const res = await fetchAuth(`/api/asistencia/estudiante/${user.id}`);
           if (!res.ok) throw new Error(`Error al obtener asistencias. Código: ${res.status}`);
 
@@ -56,7 +49,7 @@ const AsistenciasPage: React.FC = () => {
       } catch (error: any) {
         console.error("Error al obtener asistencias:", error.message);
       } finally {
-        setLoading(false);
+        hideLoader();
       }
     };
 
@@ -67,6 +60,7 @@ const AsistenciasPage: React.FC = () => {
     try {
       const actualizada = { ...asistencia, estado: "ASISTIO" };
 
+      showLoader("Creando actividades...")
       const res = await fetchAuth(`/api/asistencia/editar/${asistencia.id}`, {
         method: "PUT",
         body: JSON.stringify(actualizada),
@@ -79,6 +73,8 @@ const AsistenciasPage: React.FC = () => {
       );
     } catch (err) {
       console.error("Error al actualizar asistencia:", err);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -122,64 +118,15 @@ const AsistenciasPage: React.FC = () => {
 
   return (
     <>
-      {loading && (
-        <p className="text-center text-gray-500 mt-10 text-lg font-medium">
-          ⏳ Buscando asistencias...
-        </p>
-      )}
+      {console.log(renderIconoDerecha)}
 
-      {loading && console.log(renderIconoDerecha)}
-
-      {!loading && usuario?.tipo === "DOCENTE" && (
-  <>
-    <CrearAsistencia
-    />
-    {/* <ComponentCard title="Asistencias por clase">
-      {Object.entries(asistenciasAgrupadas()).map(([nombreClase, items]) => (
-        <div
-          key={nombreClase}
-          className="border border-gray-200 p-6 rounded-2xl bg-white mb-6 shadow-md"
-        >
-          <h4 className="font-semibold text-xl mb-4 text-gray-800 border-b pb-2">
-            {nombreClase}
-          </h4>
-          <ul className="space-y-4">
-            {items.map((asi) => {
-              const estadoClase =
-                asi.estado === "ASISTIO"
-                  ? "bg-green-100 text-green-700"
-                  : asi.estado === "JUSTIFICADO"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-red-100 text-red-700";
-
-              return (
-                <li
-                  key={asi.id}
-                  className="flex justify-between items-center bg-gray-50 rounded-lg p-4 shadow-sm hover:shadow transition"
-                >
-                  <div>
-                    <p className="text-gray-800 font-semibold">{asi.estudiante}</p>
-                    <p className="text-sm text-gray-500">
-                      Fecha: {asi.fecha}
-                    </p>
-                    <span
-                      className={`inline-flex items-center gap-1 mt-1 text-sm font-semibold px-2 py-1 rounded-full ${estadoClase}`}
-                    >
-                      {asi.estado}
-                    </span>
-                  </div>
-                    {renderIconoDerecha(asi)}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </ComponentCard> */}
+      {usuario?.tipo === "DOCENTE" && (
+    <>
+      <CrearAsistencia/>
     </>
     )}
 
-      {!loading && usuario?.tipo === "ESTUDIANTE" && (
+      {usuario?.tipo === "ESTUDIANTE" && (
         <ComponentCard title="🧾 Tu historial de asistencia">
           {asistencias.length === 0 ? (
             <p className="text-center text-gray-500 py-6 font-medium">

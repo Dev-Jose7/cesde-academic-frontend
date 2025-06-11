@@ -8,6 +8,7 @@ import {
   FaTrash,
   FaPlus,
 } from "react-icons/fa";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 interface Clase {
   id: number;
@@ -32,8 +33,6 @@ interface GrupoEstudiante {
 const AnunciosList: React.FC = () => {
   const [usuario, setUsuario] = useState<any>(null);
   const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
 
   // Para formulario de creación/edición
   const [modalCrearOpen, setModalCrearOpen] = useState(false);
@@ -76,11 +75,10 @@ const AnunciosList: React.FC = () => {
     if (!usuario) return;
 
     const cargarAnuncios = async () => {
-      setLoading(true);
-      setError(null);
       let anunciosTotales: Anuncio[] = [];
 
       try {
+        showLoader("Cargando anuncios...")
         if (usuario.tipo === "ESTUDIANTE") {
           const grupoRes = await fetchAuth(
             `/api/grupo-estudiante/estudiante/${usuario.id}`
@@ -118,9 +116,8 @@ const AnunciosList: React.FC = () => {
         setAnuncios(anunciosTotales);
       } catch (err) {
         console.error(err);
-        setError("Error al cargar los anuncios.");
       } finally {
-        setLoading(false);
+        hideLoader();
       }
     };
 
@@ -184,6 +181,7 @@ const AnunciosList: React.FC = () => {
 
       if (anuncioEditarId === null) {
         // Crear nuevo
+        showLoader("Creando anuncio...")
         res = await fetchAuth("/api/anuncio/crear", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -209,6 +207,7 @@ const AnunciosList: React.FC = () => {
     } catch (error: any) {
       setModalCrearError(error.message || "Error desconocido");
     } finally {
+      hideLoader();
       setModalCrearLoading(false);
     }
   };
@@ -228,6 +227,7 @@ const AnunciosList: React.FC = () => {
     setModalEliminarError(null);
 
     try {
+      showLoader("Eliminando anuncio...")
       const res = await fetchAuth(`/api/anuncio/remover/${anuncioEliminarId}`, {
         method: "DELETE",
       });
@@ -243,16 +243,16 @@ const AnunciosList: React.FC = () => {
     } catch (error: any) {
       setModalEliminarError(error.message || "Error desconocido");
     } finally {
+      hideLoader();
       setModalEliminarLoading(false);
     }
   };
 
   const recargarAnuncios = async () => {
-    setLoading(true);
-    setError(null);
     let anunciosTotales: Anuncio[] = [];
 
     try {
+      showLoader("Cargando anuncio...");
       if (usuario?.tipo === "ESTUDIANTE") {
         const grupoRes = await fetchAuth(
           `/api/grupo-estudiante/estudiante/${usuario.id}`
@@ -287,9 +287,8 @@ const AnunciosList: React.FC = () => {
       setAnuncios(anunciosTotales);
     } catch (err) {
       console.error(err);
-      setError("Error al cargar los anuncios.");
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -308,10 +307,7 @@ const AnunciosList: React.FC = () => {
         )}
       </h2>
 
-      {loading && <p className="text-center text-gray-500">Cargando anuncios...</p>}
-      {error && <p className="text-red-600 mb-4 font-semibold">{error}</p>}
-
-      {anuncios.length === 0 && !loading && (
+      {anuncios.length === 0 && (
         <p className="text-center text-gray-600">No hay anuncios disponibles.</p>
       )}
 

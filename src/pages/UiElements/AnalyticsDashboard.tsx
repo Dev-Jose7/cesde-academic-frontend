@@ -13,6 +13,7 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 ChartJS.register(
   CategoryScale,
@@ -41,10 +42,13 @@ const AnalyticsDashboard: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
   useEffect(() => {
+    showLoader("Cargando gráficas...")
     fetchAuth("/api/usuario/lista")
       .then(res => res.json())
       .then(setUsuarios)
       .catch(console.error);
+
+    hideLoader();
   }, []);
 
   const estadosCount = usuarios.reduce((acc, u) => {

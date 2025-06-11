@@ -42,10 +42,10 @@ export default function SignIn({ onLogin }: SignInProps) {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setMensaje(null);
     setError(null);
-    showLoader("Iniciando sesión");
     let endpoint = resolveUrl('/api/auth/login') || ""
 
     try {
+      showLoader("Iniciando sesión");
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -4,6 +4,7 @@ import ComponentCard from "../../components/common/ComponentCard";
 import LineChartOne from "../../components/charts/line/LineChartOne";
 import PageMeta from "../../components/common/PageMeta";
 import { fetchAuth } from "../../utils/fetchAuth";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 export default function LineChart() {
   useEffect(() => {
@@ -15,6 +16,7 @@ export default function LineChart() {
       const tipo = JSON.parse(usuario).tipo;
 
       try {
+        showLoader("Cargando datos...")
         switch (tipo) {
           case "ESTUDIANTE": {
             const responseAsistencias = await fetchAuth(
@@ -53,6 +55,8 @@ export default function LineChart() {
         }
       } catch (error) {
         console.error("Error obteniendo analíticas:", error);
+      } finally {
+        hideLoader();
       }
     };
 

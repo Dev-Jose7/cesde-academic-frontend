@@ -4,6 +4,7 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import { BookOpen, Trash2, PlusCircle, X, Edit2 } from "lucide-react"; // Añadí Edit2
 import { fetchAuth } from "../../utils/fetchAuth";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 type TipoModulo = "MATERIA" | "CURSO" | "CATEDRA" | "SEMINARIO";
 
@@ -22,7 +23,6 @@ const initialForm: Omit<Modulo, "id"> = {
 
 export default function Modulos() {
   const [modulos, setModulos] = useState<Modulo[]>([]);
-  const [cargando, setCargando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevoModulo, setNuevoModulo] = useState(initialForm);
   const [editandoModuloId, setEditandoModuloId] = useState<number | null>(null); // para saber si estamos editando
@@ -32,31 +32,35 @@ export default function Modulos() {
   }, []);
 
   const obtenerModulos = async () => {
-    setCargando(true);
     try {
+      showLoader("Cargando modulos...")
       const res = await fetchAuth("/api/modulo/lista");
       const data = await res.json();
       if (Array.isArray(data)) setModulos(data);
     } catch (err) {
       console.error("Error al obtener módulos:", err);
     } finally {
-      setCargando(false);
+      hideLoader();
     }
   };
 
   const eliminarModulo = async (id: number) => {
     try {
+      showLoader("Eliminando modulo..")
       await fetchAuth(`/api/modulo/remover/${id}`, {
         method: "DELETE",
       });
       setModulos((prev) => prev.filter((mod) => mod.id !== id));
     } catch (err) {
       console.error("Error al eliminar módulo:", err);
+    } finally {
+      hideLoader();
     }
   };
 
   const crearModulo = async () => {
     try {
+      showLoader("Creando modulo...")
       const res = await fetchAuth("/api/modulo/crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -71,6 +75,8 @@ export default function Modulos() {
       setMostrarModal(false);
     } catch (err) {
       console.error("Error al crear módulo:", err);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -78,6 +84,7 @@ export default function Modulos() {
     if (editandoModuloId === null) return;
 
     try {
+      showLoader("Editando modulo");
       const res = await fetchAuth(`/api/modulo/editar/${editandoModuloId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -97,6 +104,8 @@ export default function Modulos() {
       setMostrarModal(false);
     } catch (err) {
       console.error("Error al editar módulo:", err);
+    } finally {
+      hideLoader();
     }
   };
 
@@ -128,9 +137,7 @@ export default function Modulos() {
             </button>
           </div>
 
-          {cargando ? (
-            <p className="text-center text-gray-500">Cargando módulos...</p>
-          ) : modulos.length === 0 ? (
+          { modulos.length === 0 ? (
             <p className="text-center text-gray-500">No se encontraron módulos.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -176,7 +183,15 @@ export default function Modulos() {
 
       {/* Modal */}
       {mostrarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(255,255,255,0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 10000,
+        }}>
           <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative">
             <button
               onClick={() => {

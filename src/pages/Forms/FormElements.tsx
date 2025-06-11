@@ -3,6 +3,7 @@ import { fetchAuth } from "../../utils/fetchAuth";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { Usuario } from "../../context/UserContext";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 interface Clase {
   id: number;
@@ -42,6 +43,7 @@ export default function FormElements() {
       if (!usuario) return;
 
       try {
+        showLoader("Cargando actividades...")
         let actividadesTotales: Actividad[] = [];
 
         if (usuario.tipo === "ESTUDIANTE") {
@@ -100,6 +102,8 @@ export default function FormElements() {
       } catch (err) {
         console.error("Error al cargar actividades:", err);
         setError(true);
+      } finally {
+        hideLoader();
       }
     };
 

@@ -7,6 +7,7 @@ import {
   FaUserTie,
   FaUserSlash,
 } from "react-icons/fa";
+import { hideLoader, showLoader } from "../../components/common/Loader";
 
 type Usuario = {
   id: number;
@@ -41,11 +42,14 @@ const UsuariosPorTipo: React.FC = () => {
   useEffect(() => {
     const obtenerUsuarios = async () => {
       try {
+        showLoader("Cargando usuarios...");
         const response = await fetchAuth("/api/usuario/lista");
         const data: Usuario[] = await response.json();
         setUsuarios(data);
       } catch (error) {
         console.error("Error al obtener usuarios:", error);
+      } finally {
+        hideLoader();
       }
     };
     obtenerUsuarios();
@@ -63,8 +67,45 @@ const UsuariosPorTipo: React.FC = () => {
     setAgrupados(agrupadosPorTipo);
   }, [usuarios]);
 
+  const crearUsuario = async (usuario: {
+    nombre: string;
+    cedula: string;
+    correo: string;
+    contrasena: string;
+    tipo: string;
+  }) => {
+    try {
+      showLoader("Creando usuario...");
+  
+      const payload = {
+        ...usuario,
+        estado: "ACTIVO",
+      };
+  
+      const res = await fetchAuth("/api/usuario/crear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Error al crear usuario.");
+      }
+      
+      // Opcional: recargar usuarios
+    } catch (error: any) {
+      alert(error.message || "Error al crear usuario.");
+    } finally {
+      hideLoader();
+    }
+  };  
+
   return React.createElement("div", { className: "space-y-8" }, [
-    React.createElement(CrearUsuario, { key: "crear-usuario" }),
+    React.createElement(CrearUsuario, {
+      key: "crear-usuario",
+      onCrear: crearUsuario,
+    }),
 
     React.createElement(
       "div",

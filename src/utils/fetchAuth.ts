@@ -1,5 +1,3 @@
-// src/utils/fetchAuth.ts
-import { showLoader, hideLoader } from "../components/common/Loader";
 
 // Utilidad para resolver URL absoluta según el prefijo
 export function resolveUrl(url: string): string {
@@ -19,8 +17,6 @@ export async function fetchAuth(
   const refreshToken = localStorage.getItem("refreshToken");
 
   const fullUrl = resolveUrl(url);
-
-  showLoader("Cargando...");
 
   try {
     const withAuthHeader = {
@@ -77,7 +73,5 @@ export async function fetchAuth(
 
   } catch (error) {
     throw error;
-  } finally {
-    hideLoader();
   }
 }

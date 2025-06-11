@@ -8,6 +8,7 @@ import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import "./Calendar.css";
 import { fetchAuth } from "../utils/fetchAuth";
 import { Usuario } from "../context/UserContext";
+import { hideLoader, showLoader } from "../components/common/Loader";
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -69,13 +70,12 @@ const renderEventContent = (eventInfo: any) => {
 
 const Calendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [calendarLoading, setCalendarLoading] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        showLoader("Cargando horario...")
         const usuarioStorage = localStorage.getItem("usuario");
         if (!usuarioStorage) return;
 
@@ -153,7 +153,7 @@ const Calendar: React.FC = () => {
       } catch (error) {
         console.error("Error al cargar eventos:", error);
       } finally {
-        setIsLoading(false);
+        hideLoader();
       }
     };
 
@@ -163,58 +163,26 @@ const Calendar: React.FC = () => {
   const handleDateSelect = (_: DateSelectArg) => {};
   const handleEventClick = (_: EventClickArg) => {};
 
-  // Opcional: si quieres puedes controlar loading interno del calendario:
-  const handleLoading = (isLoadingCalendar: boolean) => {
-    setCalendarLoading(isLoadingCalendar);
-  };
-
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] min-h-[400px] flex items-center justify-center">
-      {isLoading || calendarLoading ? (
-        <div className="flex flex-col items-center space-y-3">
-          <svg
-            className="animate-spin h-10 w-10 text-pink-600"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-            ></path>
-          </svg>
-          <p className="text-gray-600 font-semibold text-lg">Cargando calendario...</p>
-        </div>
-      ) : (
-        <div className="custom-calendar w-full">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            locale={esLocale}
-            headerToolbar={{
-              left: "prev,next",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek",
-            }}
-            events={events}
-            selectable
-            select={handleDateSelect}
-            eventClick={handleEventClick}
-            eventContent={renderEventContent}
-            loading={handleLoading} 
-          />
-        </div>
-      )}
+      <div className="custom-calendar w-full">
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          locale={esLocale}
+          headerToolbar={{
+            left: "prev,next",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek",
+          }}
+          events={events}
+          selectable
+          select={handleDateSelect}
+          eventClick={handleEventClick}
+          eventContent={renderEventContent}
+        />
+      </div>
     </div>
   );
 };
