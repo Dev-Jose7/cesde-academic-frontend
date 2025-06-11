@@ -7,19 +7,15 @@ import UserProfiles from "./pages/UserProfiles";
 import Calendar from "./pages/Calendar";
 import ChartsDashboard from "./pages/Charts/ChartsDashboard";
 import ActividadesPanelEstudent from "./pages/UiElements/ActividadesPanelEstudent";
-import Blank from "./pages/Blank";
 import FormElements from "./pages/Forms/FormElements";
 import BasicTables from "./pages/Tables/BasicTables";
 import AsistenciaPage from "./pages/UiElements/AsistenciasPage";
 import Avatars from "./pages/UiElements/AnunciosList";
 import BasicTableOneTeacher from "./components/tables/BasicTables/BasicTableOneTeacher";
-import Badges from "./pages/UiElements/Badges";
-import Buttons from "./pages/UiElements/Buttons";
 import ManagementPrograms from "./pages/Directivos/Managementprograms";
 import SchoolsDirectives from "./pages/Directivos/SchoolsDirectives";
 import Images from "./pages/UiElements/Images";
 import ActividadesPanel from "./pages/UiElements/ActividadesPanel";
-import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
 import AnunciosList from "./pages/UiElements/AnunciosList";
 
@@ -56,7 +52,7 @@ export default function DashboardRoutes() {
           <Route path="calificaciones" element={<BasicTableOneTeacher />} />
           <Route path="asistencias" element={<AsistenciaPage />} />
           <Route path="anuncios" element={<Avatars />} />
-          <Route path="reportes" element={<LineChart />} />
+          {/* <Route path="reportes" element={<LineChart />} /> */}
           <Route path="estadisticas" element={<ChartsDashboard />} />
         </>
       )}

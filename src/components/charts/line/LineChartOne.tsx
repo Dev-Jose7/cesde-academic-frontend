@@ -1,119 +1,92 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 
-export default function LineChartOne() {
+interface Actividad {
+  id: number;
+  titulo: string;
+  tipo: string;
+}
+
+interface Calificacion {
+  fecha: string; // ISO string
+  nota: number;
+  actividad: Actividad;
+}
+
+interface LineChartOneProps {
+  data: Calificacion[];
+}
+
+export default function LineChartOne({ data }: LineChartOneProps) {
+  const sortedData = data.slice().sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+
+  const categories = sortedData.map((item) =>
+    new Date(item.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })
+  );
+
+  const notas = sortedData.map((item) => item.nota);
+
+  // Opcional: para mostrar el título de la actividad en el tooltip:
+  const actividades = sortedData.map((item) => item.actividad.titulo);
+
   const options: ApexOptions = {
     legend: {
-      show: false, // Hide legend
+      show: false,
       position: "top",
       horizontalAlign: "left",
     },
-    colors: ["#465FFF", "#9CB9FF"], // Define line colors
+    colors: ["#465FFF"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,
-      type: "line", // Set the chart type to 'line'
-      toolbar: {
-        show: false, // Hide chart toolbar
-      },
+      type: "line",
+      toolbar: { show: false },
     },
-    stroke: {
-      curve: "straight", // Define the line style (straight, smooth, or step)
-      width: [2, 2], // Line width for each dataset
-    },
-
+    stroke: { curve: "straight", width: 2 },
     fill: {
       type: "gradient",
-      gradient: {
-        opacityFrom: 0.55,
-        opacityTo: 0,
-      },
+      gradient: { opacityFrom: 0.55, opacityTo: 0 },
     },
     markers: {
-      size: 0, // Size of the marker points
-      strokeColors: "#fff", // Marker border color
+      size: 0,
+      strokeColors: "#fff",
       strokeWidth: 2,
-      hover: {
-        size: 6, // Marker size on hover
-      },
+      hover: { size: 6 },
     },
     grid: {
-      xaxis: {
-        lines: {
-          show: false, // Hide grid lines on x-axis
-        },
-      },
-      yaxis: {
-        lines: {
-          show: true, // Show grid lines on y-axis
-        },
-      },
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: true } },
     },
-    dataLabels: {
-      enabled: false, // Disable data labels
-    },
+    dataLabels: { enabled: false },
     tooltip: {
-      enabled: true, // Enable tooltip
-      x: {
-        format: "dd MMM yyyy", // Format for x-axis tooltip
+      enabled: true,
+      custom: ({ series, seriesIndex, dataPointIndex }) => {
+        return `<div style="padding:5px;">
+          <strong>${actividades[dataPointIndex]}</strong><br/>
+          Fecha: ${categories[dataPointIndex]}<br/>
+          Nota: ${series[seriesIndex][dataPointIndex]}
+        </div>`;
       },
     },
     xaxis: {
-      type: "category", // Category-based x-axis
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
-      axisBorder: {
-        show: false, // Hide x-axis border
-      },
-      axisTicks: {
-        show: false, // Hide x-axis ticks
-      },
-      tooltip: {
-        enabled: false, // Disable tooltip for x-axis points
-      },
+      type: "category",
+      categories,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      tooltip: { enabled: false },
     },
     yaxis: {
-      labels: {
-        style: {
-          fontSize: "12px", // Adjust font size for y-axis labels
-          colors: ["#6B7280"], // Color of the labels
-        },
-      },
-      title: {
-        text: "", // Remove y-axis title
-        style: {
-          fontSize: "0px",
-        },
-      },
+      labels: { style: { fontSize: "12px", colors: ["#6B7280"] } },
+      title: { text: "", style: { fontSize: "0px" } },
     },
   };
 
-  const series = [
-    {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
-    },
-    {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
-    },
-  ];
+  const series = [{ name: "Calificaciones", data: notas }];
+
   return (
     <div className="max-w-full overflow-x-auto custom-scrollbar">
-      <div id="chartEight" className="min-w-[1000px]">
-        <Chart options={options} series={series} type="area" height={310} />
+      <div id="chartLine" className="min-w-[1000px]">
+        <Chart options={options} series={series} type="line" height={310} />
       </div>
     </div>
   );

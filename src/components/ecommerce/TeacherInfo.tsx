@@ -1,4 +1,4 @@
-import React from "react";
+
 
 const teachers = [
   { name: "Ana Pérez", specialty: "Matemáticas", rating: 4.5 },
