@@ -106,7 +106,7 @@ export default function Modulos() {
     setMostrarModal(true);
   };
 
-  return (
+ return (
     <>
       <PageMeta title="Módulos | CesdeAcademic" description="Listado de módulos del programa académico" />
       <PageBreadcrumb pageTitle="Módulos" />
@@ -120,7 +120,7 @@ export default function Modulos() {
                 setEditandoModuloId(null);
                 setNuevoModulo(initialForm);
               }}
-              className="flex items-center gap-2 text-white px-4 py-2 rounded-xl shadow-sm"
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-xl shadow-sm hover:opacity-90"
               style={{ backgroundColor: "#ed2e91" }}
             >
               <PlusCircle className="w-5 h-5" />
@@ -133,53 +133,48 @@ export default function Modulos() {
           ) : modulos.length === 0 ? (
             <p className="text-center text-gray-500">No se encontraron módulos.</p>
           ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {modulos.map((modulo) => (
-                  <div
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {modulos.map((modulo) => (
+                <div
                   key={modulo.id}
-                  className="relative bg-white rounded-2xl shadow-md p-6 border hover:shadow-lg transition-all duration-300"
+                  className="relative bg-gray-50 rounded-2xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-all duration-300"
                 >
-                  {/* Contenedor para botones eliminar y editar */}
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <button
-                    onClick={() => abrirModalEditar(modulo)}
-                    className="text-white rounded-full p-1"
-                    style={{ backgroundColor: "#3b82f6" }}
-                    title="Editar módulo"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-              
-                  <button
-                    onClick={() => eliminarModulo(modulo.id)}
-                    className="text-white rounded-full p-1"
-                    style={{ backgroundColor: "#ff5176" }}
-                    title="Eliminar módulo"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              
-                <div className="flex items-start gap-4">
-                  <div
-                    className="p-3 rounded-full"
-                    style={{ backgroundColor: "#ff7c5e", color: "white" }}
-                  >
-                    <BookOpen className="w-5 h-5" />
+                  {/* Botones editar y eliminar */}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <button
+                      onClick={() => abrirModalEditar(modulo)}
+                      className="text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-full p-1"
+                      title="Editar módulo"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => eliminarModulo(modulo.id)}
+                      className="text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-full p-1"
+                      title="Eliminar módulo"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">{modulo.nombre}</h3>
-                    <p className="text-sm text-gray-500">{modulo.tipo}</p>
+
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-full bg-gray-300 text-gray-800">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">{modulo.nombre}</h3>
+                      <p className="text-sm text-gray-500">{modulo.tipo}</p>
+                    </div>
                   </div>
                 </div>
-              </div>              
               ))}
             </div>
           )}
         </ComponentCard>
       </div>
 
-      {/* Modal de creación / edición */}
+      {/* Modal */}
       {mostrarModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
           <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative">
@@ -209,9 +204,7 @@ export default function Modulos() {
             <label className="block text-sm font-medium mb-1">Tipo</label>
             <select
               value={nuevoModulo.tipo}
-              onChange={(e) =>
-                setNuevoModulo({ ...nuevoModulo, tipo: e.target.value as TipoModulo })
-              }
+              onChange={(e) => setNuevoModulo({ ...nuevoModulo, tipo: e.target.value as TipoModulo })}
               className="w-full border rounded-lg px-4 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-[#ed2e91]"
             >
               <option value="MATERIA">MATERIA</option>
@@ -222,7 +215,7 @@ export default function Modulos() {
 
             <button
               onClick={editandoModuloId ? editarModulo : crearModulo}
-              className="w-full text-white px-4 py-2 rounded-xl"
+              className="w-full text-white px-4 py-2 rounded-xl hover:opacity-90"
               style={{ backgroundColor: "#ff5176" }}
             >
               {editandoModuloId ? "Guardar cambios" : "Crear módulo"}

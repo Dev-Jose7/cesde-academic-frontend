@@ -61,8 +61,7 @@ const getNavItemsByUserType = (tipo: string): NavItem[] => {
         },
         { icon: <UserCircleIcon />, name: "Usuarios", path: "/dashboard/usuarios" },
         { icon: <ListIcon />, name: "Grupos", path: "/dashboard/grupos" },
-        { icon: <CalenderIcon />, name: "Horario", path: "/dashboard/horario" },
-        { icon: <TableIcon />, name: "Clase", path: "/dashboard/clase" },
+        { icon: <CalenderIcon />, name: "Analiticas", path: "/dashboard/analiticasusuarios" },
         { icon: <PieChartIcon />, name: "Anuncios", path: "/dashboard/anuncios" },
         { icon: <PieChartIcon />, name: "Estadísticas", path: "/dashboard/estadisticas" },
       ];
@@ -77,7 +76,6 @@ const getNavItemsByUserType = (tipo: string): NavItem[] => {
         { icon: <TableIcon />, name: "Programas", path: "/dashboard/programas" },
         { icon: <ListIcon />, name: "Módulos", path: "/dashboard/modulos" },
         { icon: <PieChartIcon />, name: "Anuncios", path: "/dashboard/anuncios" },
-        { icon: <PieChartIcon />, name: "Reportes", path: "/dashboard/reportes" },
         { icon: <PieChartIcon />, name: "Estadísticas", path: "/dashboard/estadisticas" },
       ];
     default:
